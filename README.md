@@ -1,2 +1,2 @@
 # eugene
-Entity Unit test Generator (EUGene) - uses Xtend templates to generate test cases for Java entity classes ("POJOs")
+Entity Unit test Generator (EUGene) - generates test cases for Java entity classes ("POJOs")
