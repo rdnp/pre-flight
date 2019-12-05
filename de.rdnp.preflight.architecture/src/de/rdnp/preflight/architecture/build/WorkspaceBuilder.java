@@ -1,6 +1,8 @@
-package de.rdnp.preflight.architecture;
+package de.rdnp.preflight.architecture.build;
 
 import com.structurizr.Workspace;
+
+import de.rdnp.preflight.architecture.model.PreFlightSystemBuilder;
 
 /**
  * Builder for the architecture workspace
@@ -14,11 +16,8 @@ public class WorkspaceBuilder {
 		Workspace workspace = new Workspace("Pre-Flight Architecture Workspace",
 				"Workspace containing model and all views of Pre-Fligt project.");
 
-		PreFlightSystemContext systemContext = new PreFlightSystemContext(workspace.getModel());
-		systemContext.buildViews(workspace.getViews());
-		
-		PreFlightSystemDecomposition decomposition = new PreFlightSystemDecomposition(systemContext);
-		decomposition.buildViews(workspace.getViews());
+		PreFlightSystemBuilder systemBuilder = new PreFlightSystemBuilder(workspace.getModel());
+		systemBuilder.buildViews(workspace.getViews());
 
 		return workspace;
 	}

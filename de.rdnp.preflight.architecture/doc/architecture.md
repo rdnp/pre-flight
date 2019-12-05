@@ -29,8 +29,7 @@ At a high level, features of the software will include:
 
 * The software must be shippable in a first version by end of 2019, this restricts the project capacity to 12 person days
 * All tools included must be non-commercial and non-GPL
-* All software deliverables produced by the project must be deployable on a web application server (e.g. Apache Tomcat)
-
+* All tools produced by the project must be accessible through a web browser with no installation required by the end users
 
 ## 3. System Context
 
@@ -46,7 +45,19 @@ At a high level, features of the software will include:
 
 ## 5. System Decomposition View
 
-![System Decomposition Diagram](Pre-Flight - Containers.png)
+<img src="Pre-Flight - Containers.png" alt="System Decomposition Diagram" width=900/>
+
+### 5.1 Flight Planner
+
+<img src="Pre-Flight - Flight Planning - Components.png" alt="Flight Planner Component Diagram" width=900/>
+
+### 5.2 Approach Plate Manager
+
+<img src="Pre-Flight - Approach Plate Manager - Components.png" alt="Approach Plate Manager Component Diagram"/>
+
+### 5.3 Aircraft Manager
+
+<img src="Pre-Flight - Aircraft Manager - Components.png" alt="Aircraft Manager Component Diagram" width=900/>
 
 ## 6. Runtime View
 

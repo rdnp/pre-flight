@@ -1,4 +1,4 @@
-package de.rdnp.preflight.architecture;
+package de.rdnp.preflight.architecture.build;
 
 import java.io.File;
 import java.io.FileNotFoundException;
