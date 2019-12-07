@@ -76,17 +76,17 @@ The development follows a test-driven approach. This entails that unit tests are
 
 For component-level tests, a Mock component is developed in parallel to the counterpart requiring the interface. For example, while developing a web client that requires to use a particular service, the corresponding mock service is developed. The mock services are developed as regular self-contained Spring REST services. The mock clients are developed in JUnit, exploiting the Java interface declaring the REST operation in Spring's code. Mock client and mock service development will be part of the development process of the interfaces.
 
-![Artifact Types](./pptx-export/Folie3.PNG)
+![Integration Test](./pptx-export/Folie3.PNG)
 
 For system-level tests, Selenium tests are created, one for each use case. This can be started as early as the UI for a use cases is defined, and before the respective business logic is in place.
 
-![Artifact Types](./pptx-export/Folie4.PNG)
+![System Test](./pptx-export/Folie4.PNG)
 
 ### 4.3 Delivery and Deployment Strategy
 
-The project structure and the delivery pipeline is shown below for an example application contianing web clients and services.
+The project structure and the delivery pipeline is shown below for an example application containing web clients and services.
 
-![Artifact Types](./pptx-export/Folie5.PNG)
+<img src="./pptx-export/Folie5.PNG" alt="Build Pipeline" width=900/>
 
 Generally, the build process first builds the integration test environment, containing of all mock services needed for testing. The integration test environment is immediately fired up. This way, the services from the test environment can be accessed during the testing phase of the web clients and the services. After this, the web clients are tested and built into HTML, CSS and JavaScript. These artifacts are immediately integrated into the main application project, which is built last. The build output is a deployable JAR file containing the web ui, production services, embedded Tomcat and the embedded database.
 
