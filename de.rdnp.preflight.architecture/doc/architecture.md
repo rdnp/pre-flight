@@ -37,11 +37,54 @@ At a high level, features of the software will include:
 
 ## 4. Solution Strategy
 
-* Creation of a reference architecture for flight planning tools
-* Implementing the tools for automating the most time-consuming activities in the manual flight planning process
-* Tools are implemented as web-apps that are accessible from any system relying only on a web browser
-* Full transparency on actions performed and data used by the software to the user so that errors (e.g. invalid / outdated data) can be easily detected
-* Modularization of the software in a way that leaves extension points for further automation (e.g. easy replacement of initially manual inputs by data from web services)
+The key drivers behind the strategy behind Pre-Flight are:
+
+* Education - Creating of a clearly documented and understandable reference architecture for flight planning tools
+* Business value - Automating the most time-consuming activities in the manual flight planning process
+* Easy access - All tools are web-apps that are accessible from any system relying only on a web browser
+* Transpacency on actions performed and data used by the software to the user so that errors (e.g. invalid / outdated data) can be easily detected
+* Modularization - Leaving extension points for further automation (e.g. easy replacement of initially manual inputs by data from web services)
+
+### 4.1 Technology Strategy
+
+To reduce the variation in technology, the entire architecture of Pre-Flight will be composed only of three types of technical building blocks:
+
+* Web-clients, exposing a UI to the user - those are implemented using [Angular](https://angular.io/start). They consume services (including repository services) for accessing and storing data.
+* Services, providing business logic behind a REST interface - those are implemented using [Spring RESTful Services](https://spring.io)
+* Repository Services, giving access to a contained database through a REST interface  - those are implemented using [Spring Repository for the H2 database](https://spring.io)
+
+![Artifact Types](./pptx-export/Folie2.PNG)
+
+Each building block corresponds to a component in chapter 5. See chapter 8 for details on how each one of those is implemented in detail. For details on why those technologies have been chosen, see chapter 9. 
+
+### 4.2 Test Strategy
+
+Three levels of testing are relevant for the development: 
+
+* Unit testing
+* Integration testing of a component
+* System testing of a deployable overall product
+
+For unit and component level testing, the following frameworks are used:
+
+* Karma / Jasmine for the WebClient part
+* JUnit for the REST interfaces exposed by services
+
+For system level testing, Selenium is used.
+
+The development follows a test-driven approach. This entails that unit tests are created as part of the development process.
+
+For component-level tests, a Mock component is developed in parallel to the counterpart requiring the interface. For example, while developing a web client that requires to use a particular service, the corresponding mock service is developed. The mock services are developed as regular self-contained Spring REST services. The mock clients are developed in JUnit, exploiting the Java interface declaring the REST operation in Spring's code. Mock client and mock service development will be part of the development process of the interfaces.
+
+![Artifact Types](./pptx-export/Folie3.PNG)
+
+For system-level tests, Selenium tests are created, one for each use case. This can be started as early as the UI for a use cases is defined, and before the respective business logic is in place.
+
+![Artifact Types](./pptx-export/Folie4.PNG)
+
+### 4.3 Deployment Strategy
+
+
 
 ## 5. System Decomposition View
 
@@ -61,19 +104,23 @@ At a high level, features of the software will include:
 
 ## 6. Runtime View
 
-TBD
+TODO Navigation in App
 
 ## 7. Deployment View
 
-TBD
+TODO Standard deployment out of pipeline
 
 ## 8. Cross-Cutting Concepts
 
-TBD
+TODO Persistence Concept
+TODO Service Concept
+TODO Web Client Concept
+TODO Security Concept
 
 ## 9. Architecture Decision Log
 
-TBD
+TODO Decision Apache Tomcat - MySQL vs Spring - H2 
+TODO Decision Angular vs HTML+CSS+JS vs GWT
 
 ## 10. Limitations and Technical Debt
 
