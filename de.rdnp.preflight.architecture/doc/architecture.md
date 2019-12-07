@@ -82,9 +82,17 @@ For system-level tests, Selenium tests are created, one for each use case. This 
 
 ![Artifact Types](./pptx-export/Folie4.PNG)
 
-### 4.3 Deployment Strategy
+### 4.3 Delivery and Deployment Strategy
 
+The project structure and the delivery pipeline is shown below for an example application contianing web clients and services.
 
+![Artifact Types](./pptx-export/Folie5.PNG)
+
+Generally, the build process first builds the integration test environment, containing of all mock services needed for testing. The integration test environment is immediately fired up. This way, the services from the test environment can be accessed during the testing phase of the web clients and the services. After this, the web clients are tested and built into HTML, CSS and JavaScript. These artifacts are immediately integrated into the main application project, which is built last. The build output is a deployable JAR file containing the web ui, production services, embedded Tomcat and the embedded database.
+
+After the production artifact is available, the integration test environment is stopped and the production environment is started. The final build step comprises running the system tests against the production environment.
+
+The build is designed as a Maven build, so that it can be easily triggered from Eclipse and from a CI pipeline.
 
 ## 5. System Decomposition View
 
@@ -124,4 +132,5 @@ TODO Decision Angular vs HTML+CSS+JS vs GWT
 
 ## 10. Limitations and Technical Debt
 
-TBD
+* Architecture documentation to be integrated in build pipeline
+* Deployment of multiple containers onto one or more nodes need to be defined (use of Docker containers?)
