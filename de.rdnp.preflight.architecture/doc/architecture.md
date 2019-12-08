@@ -156,63 +156,99 @@ TODO This is still open
 ## 9. Architecture Decision Log
 
 ### ADR-1 Persistence Technology - Spring with H2
+
 **Status**. Closed - 2019/12/08
+
 **Context**. Pre-Flight needs to persist data of flight routes, aircraft performance, etc. There are various options available in the context of web applications:
 * Many new web-apps use MongoDB. It is easy to install, should be sufficiently fast for the use case and amount of data, and has a strong community.
 * Enterprise systems heavily rely on JEE technology with relational databases. Major options there are MySQL, PostgreSQL. Very fast. Need higher effort due to maintenance of schemas and installation.
 * H2 database following JEE standard. It can be easily exchanged with another relational DB. It needs no installation, as it can be simply imported from Maven. H2 databases are also heavily used as test database for enterprise applications that rely on relational databases.
+
 **Decision**. The decision is towards the H2 database. The H2 database is most easy to use (no installation), compatible with JEE and sufficient for development, and even for an initial deployment with few users.
+
 **Consequences**. The application will not be able to switch to MongoDB easily if that would be needed for some reason (e.g. higher amount of users). It will be however possible with low effort to reconfigure the application to another relational database for productive deployment. This would then require the set-up of the new database.
 
 ### ADR-2 Front-End Technology - Angular
 **Status**. Closed - 2019/12/08
+
 **Context**. For the web-clients, a technology needs to be chosen. Options considered are:
 * Google Web Toolkit - on the market since long time, in maintenance phase. Allows to code everything in Java with JUnit and generate JavaScript out of that. Less releases in the recent past, so there is a slight risk of outdating. Needs no specific IDE over what is already there for Java.
 * Angular JS - very small in size, can be even simply imported in a JavaScript file. Needs no specific installation or IDE. Many applications on the market rely on AngularJS.
 * Angular (aka Angular 2) - modern and currently in active development. Allows for responsive design out of the box and has a good structural framework for the code. Supports TypeScript as a language and test-driven development with Jasmine/Karma.
 * HTML + CSS + JavaScript with some libraries - classical approach. Most easy to implement. Might make some more complex UIs hard to realize. Risks are that for some features and even ways of working (e.g. TDD) more research is needed.
+
 **Decision**. Angular (aka Angular 2). Reason: Risk of getting outdated in the mid-term future is lowest and most features are available, minimizing the risk associated with additional low-level hacks or dependencies.
+
 **Consequences**. Need to integrate the Angular application into the build process, need to install IDE plug-ins. Overall effort will increase by 3-4 days due to this. However, the benefits of being able to do things more easily later will pay off this initial invest.
 
 ### ADR-3 Deployment Format - Spring with Embedded Tomcat
+
 **Status**. Closed - 2019/12/08
+
 **Context**. This is about how to deliver the output of the project, the actual software. Options are the creation of .war files for deployment on a web application server and the use of Spring's embedded Tomcat and deploy one application as a single .jar
+
 **Decision**. Use of Spring's embedded Tomcat, deploy one application as a single .jar.
+
 **Consequences**. When multiple applications are available, this could lead to problems when running them on a single node. Either they need to run on different ports. This means that ports for the services required from other applications must be configurable and every application must be deployable on a different node, not relying on the others. If this is not ensured by the final solution, this decision needs to be revisited. It can be revised to building .war files, as Spring services can be deployed as .war files easily.
 
 ## 10. Risks / Technical Debt
 
 ### Technical Debt #1 - Architecture Documentation as Part of Build
+
 Description: The architecture documentation needs to be integrated in build pipeline. This way, it is ensured that always the current architecture documentation is exported from the model. In addition, the AD should be checked against the implementation in the model.
+
 Status: New
+
 Risk: Low
+
 Comment: Risk is low as of now, as there is not yet much functionality in the application. Once interfaces become more and functionality is more complex, there will be a need for this.
+
 Date found: 2019/12/07
 
 ### Technical Debt #2 - Support of Multiple Applications in Deployment
+
 Description:  Deployment of multiple containers onto one or more nodes need to be defined. One idea could be the use of Docker containers. Another option would be to simply build one .war file for an application. This way, all applications could be deployed onto one web server.
+
 Status: New
+
 Risk: Low
+
 Comment: Risk is low as of now, as there is only one application to be developed in the near future. Also, Spring's website says that building a .war file is easy, so at least one of the solutions will work out with low additional effort. 
+
 Date found: 2019/12/07
 
 ### Technical Debt #3 - Modules of the Build are not Independent
+
 Description: Currently, the overall build starts / stops the server at certain points. Best would be to modularize the build, so that every step can be executed without the one before. Especially tests need to start their test environment without user interaction. Currently, in case of some modules, the user needs to manually start the integration test server to run the build.
+
 Status: New
+
 Risk: Low
+
 Comment: Risk is low as of now, as there are only very few components. If the build gets more complex, this could become an issue.
+
 Date found: 2019/12/08
 
 ### Technical Debt #4 - Shutdown Hook on Productive Server
+
 Description: There is a shutdown controller exposing a REST interface introduced to shutdown the integration test and production server during the build. While this is very good for the integration test server, it is not advisable for the production server. Either the hook must be removed or secured e.g. that only certain users can trigger it.
+
 Status: New
+
 Risk: High
+
 Comment: Risk is high once the system goes into production as anyone could simply shutdown the service and make the system fail.
+
 Date found: 2019/12/08
 
 ### Technical Debt #5 - Duplicate Code between Test Service and Production Service
+
 Description: Currently there are code duplications between the test and production service. As the test service needs to be built first, as it will be used to test the production service, this is not too easy to resolve. A short-term workaround could be a sync script that overrides the source code in the test project with the one from the production project. Better would be to refer the code in some way.
+
 Status: New
+
 Risk: Medium
+
 Comment: Should be resolved at least with a workaround once the implementation of the productive service starts.
+
 Date found: 2019/12/08
