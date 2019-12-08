@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.rdnp.preflight</groupId>
+	<artifactId>de.rdnp.preflight.flightplanner.build</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>../de.rdnp.preflight.flightplanner.test</module>
+		<module>../de.rdnp.preflight.flightplanner.webui</module>
+		<module>../de.rdnp.preflight.flightplanner</module>
+		<module>../de.rdnp.preflight.test</module>
+	</modules>
+
+	<build>
+		<!-- stop all running servers -->
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<executions>
+					<execution>
+						<id>start-prod-server</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>cmd</executable>
+					<workingDirectory>.</workingDirectory>
+					<arguments>
+						<argument>/C</argument>
+						<argument>stopserver.bat</argument>
+						<argument>${project.build.directory}/${project.name}-${project.version}.jar</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

@@ -134,3 +134,4 @@ TODO Decision Angular vs HTML+CSS+JS vs GWT
 
 * Architecture documentation to be integrated in build pipeline
 * Deployment of multiple containers onto one or more nodes need to be defined (use of Docker containers?)
+* Modularize build, that every step can be executed without the one before (esp. tests need to start their testenv)

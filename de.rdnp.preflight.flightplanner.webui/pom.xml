@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.rdnp.preflight</groupId>
+	<artifactId>de.rdnp.preflight.flightplanner.webui</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<properties>
+		<angular.project.name>de-rdnp-preflight-flightplanner-webui</angular.project.name>
+		<server.project.name>de.rdnp.preflight.flightplanner</server.project.name>
+	</properties>
+
+	<!-- Tests and builds this project and integrates it into the project given 
+		as server.project.name, which builds after this project, for deployment -->
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>../${server.project.name}/src/main/resources/public</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>./dist</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<executions>
+					<execution>
+						<id>build-angular-project</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>cmd</executable>
+					<workingDirectory>.</workingDirectory>
+					<arguments>
+						<argument>/C</argument>
+						<argument>build.bat</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+
+			<!-- Plugin to copy the content of /angular/dist/ directory to output 
+				directory (ie/ /target/transactionManager-1.0/) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4.2</version>
+				<executions>
+					<execution>
+						<id>default-copy-resources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<overwrite>true</overwrite>
+							<!-- This folder is the folder where your angular files will be copied 
+								to. It must match the resulting war-file name. So if you have customized 
+								the name of war-file for ex. as "app.war" then below value should be ${project.build.directory}/app/ 
+								Value given below is as per default war-file name -->
+							<outputDirectory>../${server.project.name}/src/main/resources/public</outputDirectory>
+							<resources>
+								<resource>
+									<directory>dist/${angular.project.name}</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

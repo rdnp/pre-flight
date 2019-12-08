@@ -1,0 +1,1 @@
+start "integration-test-server" java -jar %1
