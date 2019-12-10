@@ -8,7 +8,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 const appRoutes: Routes = [
   { path: 'flightplanner/list', component: FlightListComponent },
-  { path: 'flightplanner/edit/:id', component: FlightEditorComponent },
+  { path: 'flightplanner/edit/:name', component: FlightEditorComponent },
   { path: 'flightplanner', component: FlightListComponent },
   { path: '',
     redirectTo: '/flightplanner',

@@ -3,15 +3,18 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { FlightListComponent } from './flight-list.component';
 import { FlightService } from '../services/flight.service';
 import { of } from 'rxjs';
+import { RouterModule } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 
 class MockFlightService extends FlightService {
   getFlights() {
     const result = JSON.parse(
-      '{"_embedded": {"flights": [{ "start": "EDTQ","destination": "EDDL" },{ "start": "EDTQ","destination": "EDDB" }]}}');
+      '[{ "name": "Trip to Düsseldorf","aircraftType": "C172", "origin": "EDTQ","destination": "EDDL","alternate": "EDDK"  }' +
+      ',{ "name": "Trip to Berlin","aircraftType": "C172", "origin": "EDTQ","destination": "EDDB","alternate": "EDDT" }]');
     return of(result);
   }
 
-  deleteFlight(flightIndex: number) {
+  deleteFlight(name: string) {
     const result = null;
     return of(result);
   }
@@ -24,6 +27,8 @@ describe('FlightListComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [FlightListComponent],
+      imports: [HttpClientModule, RouterModule.forRoot([
+        { path: '**', component: FlightListComponent }])],
       providers: [{ provide: FlightService, useClass: MockFlightService }],
     })
       .compileComponents();
@@ -43,27 +48,26 @@ describe('FlightListComponent', () => {
     await fixture.whenStable();
     expect(component).toBeTruthy();
     expect(component.flights.length).toBe(2);
-    expect(component.flights[0].start).toBe('EDTQ');
+    expect(component.flights[0].name).toBe('Trip to Düsseldorf');
+    expect(component.flights[0].aircraftType).toBe('C172');
+    expect(component.flights[0].origin).toBe('EDTQ');
     expect(component.flights[0].destination).toBe('EDDL');
-    expect(component.flights[1].start).toBe('EDTQ');
+    expect(component.flights[0].alternate).toBe('EDDK');
+    expect(component.flights[1].name).toBe('Trip to Berlin');
+    expect(component.flights[1].aircraftType).toBe('C172');
+    expect(component.flights[1].origin).toBe('EDTQ');
     expect(component.flights[1].destination).toBe('EDDB');
+    expect(component.flights[1].alternate).toBe('EDDT');
   });
 
-  it('should delete a flight from flight service', async () => {
+  it('should delete a flight using FlightService', async () => {
     await fixture.whenStable();
+    const flightService = fixture.debugElement.injector.get(FlightService);
+    const deleteSpy = spyOn(flightService, 'deleteFlight').and.callThrough();
 
-    const response = component.deleteFlight(1);
+    component.deleteFlight('testFlightName');
 
-    expect(response).toBeNull(); 
-    // TODO Currently, there is no response handling, errors should be handled somehow
-
-    expect(component).toBeTruthy();
-    expect(component.flights.length).toBe(2);
-    expect(component.flights[0].start).toBe('EDTQ');
-    expect(component.flights[0].destination).toBe('EDDL');
-    expect(component.flights[1].start).toBe('EDTQ');
-    expect(component.flights[1].destination).toBe('EDDB');
+    expect(deleteSpy).toHaveBeenCalledWith('testFlightName');
   });
 
-  // TODO - Display flights
 });

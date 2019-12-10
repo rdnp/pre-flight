@@ -1,6 +1,8 @@
 import { TestBed, async, inject } from '@angular/core/testing';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { FlightService } from './flight.service'
+import { concat, empty } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 describe('FlightService', () => {
 
@@ -23,21 +25,101 @@ describe('FlightService', () => {
     const post = client.post('http://localhost:8080/setTestCase1', '');
     post.subscribe((postResponse: object) => {
       console.log(postResponse);
-      service.getFlights().subscribe(flightData => {
-        console.log(flightData);
-        expect(flightData['_embedded']['flights'].length).toBeGreaterThan(0);
-        expect(flightData['_embedded']['flights'][0].destination).toEqual('EDDL');
-        expect(flightData['_embedded']['flights'][1].destination).toEqual('EDDB');
-        expect(flightData['_embedded']['flights'][2].start).toEqual('EDTY');
-        expect(flightData['_embedded']['flights'][2].destination).toEqual('EDDL');
-      })
+      service.getFlights().subscribe(flights => {
+        console.log(flights);
+        expect(flights.length).toBeGreaterThan(0);
+        expect(flights[0].origin).toEqual('EDTQ');
+        expect(flights[0].destination).toEqual('EDTQ');
+        expect(flights[1].destination).toEqual('EDDB');
+        expect(flights[2].origin).toEqual('EDTY');
+
+        // Clean-Up
+        service.deleteFlight('Flight.to.Berlin').subscribe(() => { }, () => { });
+        service.deleteFlight('Flight.to.Schwaebisch.Hall').subscribe(() => { }, () => { });
+        service.deleteFlight('Sample.Local.Flight').subscribe(() => { }, () => { });
+      });
     });
   })));
 
-  // TODO Delete
+  it('retrieves an existing and non-existing flight from integrationtest server by name',
+    async(inject([HttpClient], (client: HttpClient) => {
+      const post = client.post('http://localhost:8080/setTestCase1', '');
+      post.subscribe((postResponse: object) => {
+        console.log(postResponse);
+        service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
+          expect(flightData.origin).toEqual('EDTQ');
+          expect(flightData.destination).toEqual('EDTQ');
+        });
+        service.getFlightByName('').subscribe(flightData => {
+          expect(flightData.origin).toEqual('');
+          expect(flightData.destination).toEqual('');
 
-  // TODO Create
+          // Clean-Up
+          service.deleteFlight('Flight.to.Berlin').subscribe(() => { }, () => { });
+          service.deleteFlight('Flight.to.Schwaebisch.Hall').subscribe(() => { }, () => { });
+          service.deleteFlight('Sample.Local.Flight').subscribe(() => { }, () => { });
+        });
+      });
+    })));
 
-  // TODO Update
+  it('deletes an existing flight from integrationtest server by name',
+    async(inject([HttpClient], (client: HttpClient) => {
+      const post = client.post('http://localhost:8080/setTestCase1', '');
+      post.subscribe((postResponse: object) => {
+        console.log(postResponse);
+        service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
+          expect(flightData.origin).toEqual('EDTQ');
+          expect(flightData.destination).toEqual('EDTQ');
+        });
+        service.deleteFlight('Sample.Local.Flight').subscribe(validResponse => { },
+          errorResponse => {
+            service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
+              expect(flightData.origin).toEqual('');
+              expect(flightData.destination).toEqual('');
+
+              // Clean-Up
+              service.deleteFlight('Flight.to.Berlin').subscribe(() => { }, () => { });
+              service.deleteFlight('Flight.to.Schwaebisch.Hall').subscribe(() => { }, () => { });
+              service.deleteFlight('Sample.Local.Flight').subscribe(() => { }, () => { });
+            });
+          }
+        );
+      });
+    })));
+
+  it('Saves an existing flight on integrationtest server by name',
+    async(inject([HttpClient], (client: HttpClient) => {
+      const post = client.post('http://localhost:8080/setTestCase1', '');
+      post.subscribe((postResponse: object) => {
+        service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
+          expect(flightData.origin).toEqual('EDTQ');
+          expect(flightData.destination).toEqual('EDTQ');
+          flightData.destination = 'EDTL';
+
+          // Save under another name
+          flightData.name = 'New.Flight';
+          service.saveFlight(flightData).subscribe(() => {
+            service.getFlightByName('New.Flight').subscribe(newFlight => {
+              expect(newFlight.destination).toEqual('EDTL');
+            });
+
+            // Update the newly created record
+            flightData.destination = 'LOWI';
+            service.saveFlight(flightData).subscribe(() => {
+              service.getFlightByName('New.Flight').subscribe(newFlightUpdated => {
+                expect(newFlightUpdated.destination).toEqual('LOWI');
+
+                // Clean up
+                service.deleteFlight('Flight.to.Berlin').subscribe(() => { }, () => { });
+                service.deleteFlight('Flight.to.Schwaebisch.Hall').subscribe(() => { }, () => { });
+                service.deleteFlight('Sample.Local.Flight').subscribe(() => { }, () => { });
+                service.deleteFlight('New.Flight').subscribe(() => { }, () => { });
+              });
+            });
+          });
+
+        });
+      });
+    })));
 
 });

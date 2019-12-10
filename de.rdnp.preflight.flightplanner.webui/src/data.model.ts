@@ -1,11 +1,35 @@
 export class Flight {
 
-    start: String;
-    destination: String;
+    name: string;
+    origin: string;
+    destination: string;
+    alternate: string;
+    aircraftType: string;
+    _links: FlightLinks;
 
-    constructor(start: string, destination: string) {
+    constructor(name: string, origin: string, destination: string, alternate: string, aircraftType: string, _links: FlightLinks) {
+        this.name = name;
+        this.origin = origin;
         this.destination = destination;
-        this.start = start;
+        this.aircraftType = aircraftType;
+        this.alternate = alternate;
     }
+}
 
+export interface FlightLinks {
+    self: Link;
+    flight: Link;
+}
+
+export interface Link {
+    href: string;
+}
+
+export interface FlightList {
+    flights: Flight[];
+}
+
+export interface FlightRepositoryResponse {
+
+    _embedded: FlightList;
 }

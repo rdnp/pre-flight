@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Flight } from '../../data.model';
 import { FlightService } from '../services/flight.service';
+import { async } from '@angular/core/testing';
 
 @Component({
   selector: 'app-flight-list',
@@ -9,7 +10,7 @@ import { FlightService } from '../services/flight.service';
 })
 export class FlightListComponent implements OnInit {
 
-  flights: Flight[];
+  private internalFlights: Flight[];
 
   constructor(private flightService: FlightService) {
   }
@@ -19,26 +20,30 @@ export class FlightListComponent implements OnInit {
   }
 
   private loadFlights() {
-    this.flights = [];
-    this.flightService.getFlights().subscribe((readFlight: object) => {
-      const flightArray = readFlight['_embedded']['flights'];
+    this.internalFlights = [];
+    this.flightService.getFlights().subscribe((flightArray: Flight[]) => {
       for (const oneFlight of flightArray) {
-        this.flights.push(oneFlight);
+        this.internalFlights.push(oneFlight);
         console.log('Got ' + this.flights.length + ' flights: ' + this.flights);
       }
     });
   }
 
-  /**
-   * startFlightPlanning starts the flight planning for a flight
-   */
-  public deleteFlight(flightIndex: number) {
-    const flightId = flightIndex + 1;
-    this.flightService.deleteFlight(flightId).subscribe((obj: object) => { 
-      console.log(obj);
-      this.loadFlights();
-    });
+  public get flights() {
+    return this.internalFlights;
+  }
 
+  public deleteFlight(name: string) {
+    this.flightService.deleteFlight(name).subscribe(
+      data =>{
+        console.log(data);
+        this.loadFlights();
+      },
+      error =>{
+        console.log(error);
+        this.loadFlights();
+      }
+    );
     // Note. REST Response is discarded
   }
 

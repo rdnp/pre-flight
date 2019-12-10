@@ -1,7 +1,11 @@
 <div>
-  <p align="left">Start: <input value="flight.start" /> </p>
-  <p align="left">Destination: <input value="flight.destination" /> </p>
+  <p *ngIf="flight" align="left">Origin: <input [value]="flight.origin" (input)="flight.origin = $event.target.value" />
+    Destination: <input [value]="flight.destination" (input)="flight.destination = $event.target.value" />
+    Alternate:
+    <input [value]="flight.alternate" (input)="flight.alternate = $event.target.value" /> Aircraft Type: <input
+      [value]="flight.aircraftType" (input)="flight.aircraftType = $event.target.value" /> </p>
 </div>
 <div>
+  Name: <input *ngIf="flight" [value]="flight.name" (input)="flight.name = $event.target.value"/>
   <button (click)="save()">Save</button> <button [routerLink]="['/flightplanner/list']">Return</button>
 </div>

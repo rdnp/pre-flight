@@ -21,14 +21,20 @@ public class FlightRepositoryMockController {
 	public List<Flight> getFlight() {
 		List<Flight> testData = new ArrayList<Flight>();
 		Flight flight = new Flight();
+		flight.setName("Sample.Local.Flight");
+		flight.setOrigin("EDTQ");
+		flight.setDestination("EDTQ");
 		restTemplate.put("http://localhost:8080/flights/9999999", flight);
 		testData.add(flight);
 		flight = new Flight();
+		flight.setName("Flight.to.Berlin");
 		flight.setDestination("EDDB");
+		flight.setAircraftType("C172");
 		restTemplate.put("http://localhost:8080/flights/9999999", flight);
 		testData.add(flight);
 		flight = new Flight();
-		flight.setStart("EDTY");
+		flight.setName("Flight.to.Schwaebisch.Hall");
+		flight.setOrigin("EDTY");
 		restTemplate.put("http://localhost:8080/flights/9999999", flight);
 		testData.add(flight);
 		System.out.println("Added data for test case 1");

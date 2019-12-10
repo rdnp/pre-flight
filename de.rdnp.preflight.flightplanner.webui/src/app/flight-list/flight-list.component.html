@@ -1,11 +1,11 @@
 <div>
   <table>
-    <tr *ngFor="let f of flights; index as flightIndex">
+    <tr *ngFor="let f of flights">
       <td>
-        <a [routerLink]="['/flightplanner/edit', flightIndex]">{{ (flightIndex + 1) + ':' + f.start+ '-&gt;' +f.destination}}</a>
+        <a [routerLink]="['/flightplanner/edit', f.name]">{{ f.name + ' (' + f.aircraftType + '; ' + f.origin+ ' -&gt; ' +f.destination + ')'}}</a>
       </td>
       <td>
-        <button (click)="deleteFlight(flightIndex)">
+        <button (click)="deleteFlight(f.name)">
           Delete
         </button>
       </td>
@@ -13,7 +13,7 @@
   </table>
 </div>
 <div>
-  <button [routerLink]="['/flightplanner/edit', -1]" color="primary">
+  <button [routerLink]="['/flightplanner/edit', '']" color="primary">
     Create a new flight
   </button>
 </div>
