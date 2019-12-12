@@ -13,7 +13,6 @@ export class FlightService {
   }
 
   public getFlights() {
-    // TODO put the unwrapping of flights in here...
     return this.http.get('http://localhost:8080/flights').pipe(
       map((response: FlightRepositoryResponse) => {
         return response._embedded.flights;

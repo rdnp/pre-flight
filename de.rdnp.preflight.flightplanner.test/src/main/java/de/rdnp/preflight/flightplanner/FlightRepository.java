@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @CrossOrigin(methods = {RequestMethod.DELETE, RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT})
 @RepositoryRestResource(collectionResourceRel = "flights", path = "flights")
 public interface FlightRepository extends PagingAndSortingRepository<Flight, Long> {
+	
 	  List<Flight> findByName(@Param("name") String name);
 
 	  @Transactional

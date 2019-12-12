@@ -3,8 +3,6 @@ package de.rdnp.preflight.flightplanner;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
-public class FlightRepositoryMockController {
+public class FlightRepositoryTestDataController {
 	
 	private RestTemplate restTemplate = new RestTemplate();
 	
