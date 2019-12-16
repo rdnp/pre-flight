@@ -1,3 +1,25 @@
+export interface RouteSegment {
+    sourcePointId: string;
+    targetPointId: string;
+    trueCourse: number;
+    distance: number;
+    minimumSafeAltitude: number;
+    _links: RouteSegmentLinks;
+}
+
+export interface RouteSegmentList {
+    'route-segments': RouteSegment[];
+}
+
+export interface RouteSegmentRepositoryResponse {
+    _embedded: RouteSegmentList;
+}
+
+export interface RouteSegmentLinks {
+    self: Link;
+    'route-segment': Link;
+}
+
 export class Flight {
 
     name: string;
@@ -30,6 +52,5 @@ export interface FlightList {
 }
 
 export interface FlightRepositoryResponse {
-
     _embedded: FlightList;
 }

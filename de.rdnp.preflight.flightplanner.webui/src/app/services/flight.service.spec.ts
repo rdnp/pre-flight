@@ -1,8 +1,6 @@
 import { TestBed, async, inject } from '@angular/core/testing';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { FlightService } from './flight.service'
-import { concat, empty } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { FlightService } from './flight.service';
 
 describe('FlightService', () => {
 
@@ -71,8 +69,8 @@ describe('FlightService', () => {
           expect(flightData.origin).toEqual('EDTQ');
           expect(flightData.destination).toEqual('EDTQ');
         });
-        service.deleteFlight('Sample.Local.Flight').subscribe(validResponse => { },
-          errorResponse => {
+        service.deleteFlight('Sample.Local.Flight').subscribe(() => { },
+          () => {
             service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
               expect(flightData.origin).toEqual('');
               expect(flightData.destination).toEqual('');
@@ -90,7 +88,7 @@ describe('FlightService', () => {
   it('Saves an existing flight on integrationtest server by name',
     async(inject([HttpClient], (client: HttpClient) => {
       const post = client.post('http://localhost:8080/setTestCase1', '');
-      post.subscribe((postResponse: object) => {
+      post.subscribe(() => {
         service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
           expect(flightData.origin).toEqual('EDTQ');
           expect(flightData.destination).toEqual('EDTQ');
