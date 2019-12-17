@@ -155,7 +155,7 @@ describe('FlightEditorComponent', () => {
   it('should save route segments from a flight on saving the flight', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    const saveSpy = spyOn(routeSegmentService, 'saveRouteSegment').and.returnValue(of( {} ));
+    const saveSpy = spyOn(routeSegmentService, 'saveRouteSegment').and.returnValue(of({}));
     spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
       sourcePointId: '',
       targetPointId: '',
@@ -285,5 +285,56 @@ describe('FlightEditorComponent', () => {
     component.saveRouteSegment('START', 'DEST');
 
     expect(saveRouteSegmentSpy).toHaveBeenCalled();
+  });
+
+  it('should set/assign the proper values for a route segment update', async () => {
+    await fixture.whenStable();
+    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
+      sourcePointId: 'START',
+      targetPointId: 'DEST',
+      minimumSafeAltitude: -1,
+      trueCourse: -1,
+      distance: -1,
+      _links: undefined
+    }));
+
+    // begin inserting two points for start and destination
+    component.insertPoint(0);
+    component.insertPoint(0);
+    expect(component.flight.pointIds.length).toBe(2);
+
+    component.setPointId(0, 'START');
+    component.setPointId(1, 'DEST');
+
+    expect(component.getRouteSegment('START', 'DEST').distance).toBe(-1);
+    component.setDistance('START', 'DEST', 5);
+    expect(component.getRouteSegment('START', 'DEST').distance).toBe(5);
+
+    expect(component.getRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(-1);
+    component.setMinimumSafeAltitude('START', 'DEST', 5000);
+    expect(component.getRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(5000);
+
+    expect(component.getRouteSegment('START', 'DEST').trueCourse).toBe(-1);
+    component.setTrueCourse('START', 'DEST', 140);
+    expect(component.getRouteSegment('START', 'DEST').trueCourse).toBe(140);
+
+    // error values
+    component.setDistance('START', 'DEST', -3); // negative, not allowed
+    component.setDistance('START', 'DEST', 25000); // more than earth circumference, not allowed
+    component.setDistance('START', 'DEST2', 50); // non-existing route sgement, not allowed
+    expect(component.getRouteSegment('START', 'DEST').distance).toBe(5);
+
+    component.setMinimumSafeAltitude('START', 'DEST', -5000); // negative and below -2000, not allowed
+    component.setMinimumSafeAltitude('START', 'DEST', 101000); // more than 100,000ft, not allowed
+    component.setMinimumSafeAltitude('START', 'DEST2', 5000); // non-existing route sgement, not allowed
+    expect(component.getRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(5000);
+
+    component.setTrueCourse('START', 'DEST', -9); // negative, not allowed
+    component.setTrueCourse('START', 'DEST', 400); // more than 360°, not allowed
+    component.setTrueCourse('START', 'DEST2', 320); // non-existing route sgement, not allowed
+    expect(component.getRouteSegment('START', 'DEST').trueCourse).toBe(140);
+
+    expect(component.getRouteSegment('START', 'DEST2')).toBeFalsy();
   });
 });

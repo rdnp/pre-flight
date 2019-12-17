@@ -70,6 +70,16 @@ describe('RouteSegmentService', () => {
       expect(foundSegment.minimumSafeAltitude).toBe(-1);
     });
   }));
+  
+  it('finds the inverse of route segment in the test data', async(() => {
+    service.findRouteSegment('EDTY', 'DKB').subscribe((foundSegment: RouteSegment) => {
+      expect(foundSegment.sourcePointId).toBe('EDTY');
+      expect(foundSegment.targetPointId).toBe('DKB');
+      expect(foundSegment.distance).toBe(18);
+      expect(foundSegment.trueCourse).toBe(82);
+      expect(foundSegment.minimumSafeAltitude).toBe(5000);
+    });
+  }));
 
   it('saves (updates existing and creates new) route segments to the test data', async(() => {
     // modify existing route segment

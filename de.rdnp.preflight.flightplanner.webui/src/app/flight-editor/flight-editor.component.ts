@@ -19,8 +19,8 @@ export class FlightEditorComponent implements OnInit {
   routeSegments: Map<string, RouteSegment>;
 
   constructor(private flightService: FlightService,
-              private routeSegmentService: RouteSegmentService,
-              private route: ActivatedRoute) {
+    private routeSegmentService: RouteSegmentService,
+    private route: ActivatedRoute) {
     this.routeSegments = new Map();
   }
 
@@ -102,24 +102,44 @@ export class FlightEditorComponent implements OnInit {
     return this.routeSegments.get(fromPointId + '\0' + toPointId);
   }
 
-  /*
-   * XXX below is untested experimental stuff
+  /**
+   * Sets the point at the given index in the flight to a new value and also loads the then missing route segments.
    */
-
   setPointId(index: number, pointId: string) {
     this.flight.pointIds[index] = pointId;
     this.loadMissingRouteSegments();
   }
 
+  /**
+   * Sets a true course to the route-segment specified by the two points.
+   * Will not do anything if the route segment does not exist or if the course is invalid (i.e. not between 0 and 360).
+   */
   setTrueCourse(fromPointId: string, toPointId: string, trueCourse: number) {
+    if (trueCourse < 0 || trueCourse > 360 || !this.getRouteSegment(fromPointId, toPointId)) {
+      return;
+    }
     this.getRouteSegment(fromPointId, toPointId).trueCourse = trueCourse;
   }
 
+  /**
+   * Sets a minimum safe altitude to the route-segment specified by the two points.
+   * Will not do anything if the route segment does not exist or if the given altitude is invalid (i.e. not between -2000 and 100000).
+   */
   setMinimumSafeAltitude(fromPointId: string, toPointId: string, minimumSafeAltitude: number) {
+    if ((minimumSafeAltitude < -2000) || (minimumSafeAltitude > 100000) || (!this.getRouteSegment(fromPointId, toPointId))) {
+      return;
+    }
     this.getRouteSegment(fromPointId, toPointId).minimumSafeAltitude = minimumSafeAltitude;
   }
 
+  /**
+   * Sets a distance to the route-segment specified by the two points.
+   * Will not do anything if the route segment does not exist or if the given altitude is invalid (i.e. not between 0 and 23000).
+   */
   setDistance(fromPointId: string, toPointId: string, distance: number) {
+    if (distance < 0 || distance > 23000 || !this.getRouteSegment(fromPointId, toPointId)) {
+      return;
+    }
     this.getRouteSegment(fromPointId, toPointId).distance = distance;
   }
 }
