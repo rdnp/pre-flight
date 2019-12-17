@@ -59,11 +59,9 @@ export class RouteSegmentService {
     return this.findRouteSegment(toSave.sourcePointId, toSave.targetPointId).pipe(concatMap((repositoryRouteSegment) => {
       if (repositoryRouteSegment._links) {
         // update existing route segment
-        console.log(toSave);
         return this.http.put(repositoryRouteSegment._links.self.href, toSave);
       } else {
         // create new route segment
-        console.log(toSave);
         return this.http.put('http://localhost:8080/route-segments/9223372036854775807', toSave);
       }
     }));

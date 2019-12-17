@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
 import { Flight, RouteSegment } from 'src/data.model';
 import { FlightService } from '../services/flight.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
@@ -20,7 +20,8 @@ export class FlightEditorComponent implements OnInit {
 
   constructor(private flightService: FlightService,
     private routeSegmentService: RouteSegmentService,
-    private route: ActivatedRoute) {
+    private route: ActivatedRoute,
+    private changeDetector: ChangeDetectorRef) {
     this.routeSegments = new Map();
   }
 
@@ -116,6 +117,11 @@ export class FlightEditorComponent implements OnInit {
    */
   setTrueCourse(fromPointId: string, toPointId: string, trueCourse: number) {
     if (trueCourse < 0 || trueCourse > 360 || !this.getRouteSegment(fromPointId, toPointId)) {
+      alert('You entered a true course that is outside the reasonable range.\n' +
+        'Values allowed are between 0 and 360.\n' +
+        'Course values are given in degrees.\n' +
+        'Please correct the value, as invalid values will not be saved.\n' +
+        'Refreshing the page will restore the last valid value.');
       return;
     }
     this.getRouteSegment(fromPointId, toPointId).trueCourse = trueCourse;
@@ -127,6 +133,11 @@ export class FlightEditorComponent implements OnInit {
    */
   setMinimumSafeAltitude(fromPointId: string, toPointId: string, minimumSafeAltitude: number) {
     if ((minimumSafeAltitude < -2000) || (minimumSafeAltitude > 100000) || (!this.getRouteSegment(fromPointId, toPointId))) {
+      alert('You entered a minimum safe altitude that is outside reasonable range.\n' +
+        'Values allowed are between -2000 and 100000.' +
+        'Altitude values are given in feet above MSL.' +
+        'Please correct the value, as invalid values will not be saved.\n' +
+        'Refreshing the page will restore the last valid value.');
       return;
     }
     this.getRouteSegment(fromPointId, toPointId).minimumSafeAltitude = minimumSafeAltitude;
@@ -138,6 +149,11 @@ export class FlightEditorComponent implements OnInit {
    */
   setDistance(fromPointId: string, toPointId: string, distance: number) {
     if (distance < 0 || distance > 23000 || !this.getRouteSegment(fromPointId, toPointId)) {
+      alert('You entered a distance is outside reasonable range.' +
+        'Values allowed are between 0 and 23000.' +
+        'Distance values are given in NM.' +
+        'Please correct the value, as invalid values will not be saved.\n' +
+        'Refreshing the page will restore the last valid value.');
       return;
     }
     this.getRouteSegment(fromPointId, toPointId).distance = distance;
