@@ -15,11 +15,12 @@ import org.springframework.web.client.RestTemplate;
 public class RouteSegmentTestDataController {
 
 	private static final String PUT_NEW_URL = "http://localhost:8080/route-segments/9223372036854775807";
+
 	private RestTemplate restTemplate = new RestTemplate();
 
-	@Autowired 
+	@Autowired
 	private RouteSegmentRepository repository;
-	
+
 	@CrossOrigin()
 	@RequestMapping(path = "/setDefaultTestDataForRouteSegments", method = RequestMethod.POST)
 	public List<RouteSegment> getDefaultTestDataForRouteSegments() {
@@ -69,9 +70,9 @@ public class RouteSegmentTestDataController {
 	}
 
 	@CrossOrigin()
-	@RequestMapping(path = "/deleteAllRouteSegmentTestData", method = RequestMethod.POST)
+	@RequestMapping(path = "/deleteAllTestDataForRouteSegments", method = RequestMethod.POST)
 	public void deleteAllRouteSegmentTestData() {
 		repository.deleteAll();
-		System.out.println("Deletion of route segment test data not yet implemented");
+		System.out.println("All route-segment test data purged.");
 	}
 }

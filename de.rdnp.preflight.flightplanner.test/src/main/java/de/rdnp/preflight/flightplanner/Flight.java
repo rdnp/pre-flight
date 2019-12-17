@@ -2,12 +2,14 @@ package de.rdnp.preflight.flightplanner;
 
 import java.util.List;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 
 @Entity
 public final class Flight {
@@ -26,16 +28,8 @@ public final class Flight {
 	
 	private String aircraftType;
 	
-//	@ManyToMany(targetEntity=Leg.class, fetch=FetchType.EAGER)
-//	private List<Leg> legs;
-	
-	/*
-	 * XXX
-	 * Open
-	 *  - day
-	 *  - performanceSetting
-	 *  - load
-	 */
+	@ElementCollection
+	private List<String> pointIds;
 
 	public Flight() {
 	}
@@ -80,14 +74,11 @@ public final class Flight {
 		this.aircraftType = aircraftType;
 	}
 
-//	public List<Leg> getLegs() {
-//		return legs;
-//	}
-//
-//	public void setLegs(List<Leg> legs) {
-//		this.legs = legs;
-//	}
+	public List<String> getPointIds() {
+		return pointIds;
+	}
 	
-	
-	
+	public void setPointIds(List<String> pointIds) {
+		this.pointIds = pointIds;
+	}
 }

@@ -1,0 +1,2 @@
+[1217/144049.971:ERROR:process_info.cc(359)] UncheckedAllocate
+[1217/144049.990:ERROR:crash_report_database_win.cc(469)] failed to stat report

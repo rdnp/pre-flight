@@ -21,13 +21,13 @@ describe('RouteSegmentService', () => {
   // 'Load test data into test server'
   beforeEach(async(inject([HttpClient], (client: HttpClient) => {
     const enableTestData = client.post('http://localhost:8080/setDefaultTestDataForRouteSegments', '');
-    enableTestData.subscribe(() => { console.log('Test data loaded'); }, console.log);
+    enableTestData.subscribe(() => { console.log('Test data for route segments loaded'); }, console.log);
   })));
 
   // 'Purge test data from test server'
   afterEach(async(inject([HttpClient], (client: HttpClient) => {
-    const deleteTestData = client.post('http://localhost:8080/deleteAllRouteSegmentTestData', '');
-    deleteTestData.subscribe(() => { console.log('Test data loaded'); }, console.log);
+    const deleteTestData = client.post('http://localhost:8080/deleteAllTestDataForRouteSegments', '');
+    deleteTestData.subscribe(() => { console.log('Test data for route-segments deleted'); }, console.log);
   })));
 
   it('should be created', () => {
@@ -35,7 +35,8 @@ describe('RouteSegmentService', () => {
   });
 
 
-  it('finds the route segments from the test data', async(inject([HttpClient], () => {
+  it('finds the route segments from the test data', async(() => {
+    // check three route segments from the default test data
     service.findRouteSegment('DKB', 'EDTY').subscribe((foundSegment: RouteSegment) => {
       expect(foundSegment.sourcePointId).toBe('DKB');
       expect(foundSegment.targetPointId).toBe('EDTY');
@@ -62,15 +63,15 @@ describe('RouteSegmentService', () => {
 
     // cross-check with non-existing route segment
     service.findRouteSegment('LOWI', 'KJFK').subscribe((foundSegment: RouteSegment) => {
-      expect(foundSegment.sourcePointId).toBe('');
-      expect(foundSegment.targetPointId).toBe('');
+      expect(foundSegment.sourcePointId).toBe('LOWI');
+      expect(foundSegment.targetPointId).toBe('KJFK');
       expect(foundSegment.distance).toBe(-1);
       expect(foundSegment.trueCourse).toBe(-1);
       expect(foundSegment.minimumSafeAltitude).toBe(-1);
     });
-  })));
+  }));
 
-  it('saves (updates existing and creates new) route segments to the test data', async(inject([HttpClient], () => {
+  it('saves (updates existing and creates new) route segments to the test data', async(() => {
     // modify existing route segment
     service.findRouteSegment('DKB', 'EDTY').subscribe((foundSegment: RouteSegment) => {
       foundSegment.distance = 15;
@@ -96,13 +97,13 @@ describe('RouteSegmentService', () => {
     };
     service.saveRouteSegment(newSegment).subscribe(() => {
       service.findRouteSegment('LOWI', 'KJFK').subscribe((foundSegment: RouteSegment) => {
-          expect(foundSegment.sourcePointId).toBe('LOWI');
-          expect(foundSegment.targetPointId).toBe('KJFK');
-          expect(foundSegment.distance).toBe(2700);
-          expect(foundSegment.trueCourse).toBe(290);
-          expect(foundSegment.minimumSafeAltitude).toBe(18000);
-        });
+        expect(foundSegment.sourcePointId).toBe('LOWI');
+        expect(foundSegment.targetPointId).toBe('KJFK');
+        expect(foundSegment.distance).toBe(2700);
+        expect(foundSegment.trueCourse).toBe(290);
+        expect(foundSegment.minimumSafeAltitude).toBe(18000);
+      });
     });
-  })));
+  }));
 
 });

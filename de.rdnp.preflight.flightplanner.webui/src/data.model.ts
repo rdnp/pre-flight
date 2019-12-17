@@ -27,6 +27,7 @@ export class Flight {
     destination: string;
     alternate: string;
     aircraftType: string;
+    pointIds: string[];
     _links: FlightLinks;
 
     constructor(name: string, origin: string, destination: string, alternate: string, aircraftType: string, _links: FlightLinks) {

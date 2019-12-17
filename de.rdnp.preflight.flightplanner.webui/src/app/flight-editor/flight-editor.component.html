@@ -1,3 +1,4 @@
+<h2>Flight Details</h2>
 <div>
   <p *ngIf="flight" align="left">Origin: <input [value]="flight.origin" (input)="flight.origin = $event.target.value" />
     Destination: <input [value]="flight.destination" (input)="flight.destination = $event.target.value" />
@@ -5,7 +6,29 @@
     <input [value]="flight.alternate" (input)="flight.alternate = $event.target.value" /> Aircraft Type: <input
       [value]="flight.aircraftType" (input)="flight.aircraftType = $event.target.value" /> </p>
 </div>
+<h2>Flight Route</h2>
 <div>
-  Name: <input *ngIf="flight" [value]="flight.name" (input)="flight.name = $event.target.value"/>
+  <table *ngIf="flight?.pointIds">
+    <!-- <tr>Route points: {{flight.pointIds}}</tr> -->
+    <ng-container *ngFor="let routePoint of flight.pointIds; index as i; trackBy:trackByIndex">
+      <tr>
+        <td><button (click)="removePoint(i)">&minus;</button></td>
+        <td><input [value]="flight.pointIds[i]" (input)="setPointId(i, $event.target.value)" size="12"/></td>
+      </tr>
+      <tr *ngIf="i < flight.pointIds.length - 1">
+        <td><button (click)="insertPoint(i)">+</button></td>
+        <td>MSA:<input [value]="getRouteSegment(routePoint,flight.pointIds[i+1])?.minimumSafeAltitude"
+            (input)="setMinimumSafeAltitude(routePoint,flight.pointIds[i+1], $event.target.value)" size="5" /></td>
+        <td>TC:<input [value]="getRouteSegment(routePoint,flight.pointIds[i+1])?.trueCourse"
+            (input)="setTrueCourse(routePoint,flight.pointIds[i+1], $event.target.value)" size="3" /></td>
+        <td>D:<input [value]="getRouteSegment(routePoint,flight.pointIds[i+1])?.distance"
+            (input)="setDistance(routePoint,flight.pointIds[i+1], $event.target.value)" size="4" /></td>
+      </tr>
+    </ng-container>
+  </table>
+</div>
+<h2>Save Flight</h2>
+<div>
+  Name: <input *ngIf="flight" [value]="flight.name" (input)="flight.name = $event.target.value" />
   <button (click)="save()">Save</button> <button [routerLink]="['/flightplanner/list']">Return</button>
 </div>
