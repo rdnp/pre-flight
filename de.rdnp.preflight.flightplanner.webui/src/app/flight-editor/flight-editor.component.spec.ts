@@ -5,8 +5,7 @@ import { FlightService } from '../services/flight.service';
 import { of } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { ActivatedRoute, ParamMap } from '@angular/router';
-import { DebugElement } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 class MockFlightService extends FlightService {
 

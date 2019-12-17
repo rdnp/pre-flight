@@ -22,7 +22,7 @@ export class FlightEditorComponent implements OnInit {
     this.route.paramMap.pipe(
       switchMap((params: ParamMap) =>
         this.flightService.getFlightByName(params.get('name')))
-    ).subscribe((result: Flight) => { this.flight = result });
+    ).subscribe((result: Flight) => { this.flight = result; });
   }
 
   save() {

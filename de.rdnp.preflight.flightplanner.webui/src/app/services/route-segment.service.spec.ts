@@ -3,7 +3,6 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 
 import { RouteSegmentService } from './route-segment.service';
-import { del } from 'selenium-webdriver/http';
 import { RouteSegment } from 'src/data.model';
 
 describe('RouteSegmentService', () => {
@@ -76,12 +75,12 @@ describe('RouteSegmentService', () => {
     service.findRouteSegment('DKB', 'EDTY').subscribe((foundSegment: RouteSegment) => {
       foundSegment.distance = 15;
       service.saveRouteSegment(foundSegment).subscribe(() => {
-        service.findRouteSegment('DKB', 'EDTY').subscribe((foundSegment: RouteSegment) => {
-          expect(foundSegment.sourcePointId).toBe('DKB');
-          expect(foundSegment.targetPointId).toBe('EDTY');
-          expect(foundSegment.distance).toBe(15);
-          expect(foundSegment.trueCourse).toBe(262);
-          expect(foundSegment.minimumSafeAltitude).toBe(5000);
+        service.findRouteSegment('DKB', 'EDTY').subscribe((secondCallsFoundSegment: RouteSegment) => {
+          expect(secondCallsFoundSegment.sourcePointId).toBe('DKB');
+          expect(secondCallsFoundSegment.targetPointId).toBe('EDTY');
+          expect(secondCallsFoundSegment.distance).toBe(15);
+          expect(secondCallsFoundSegment.trueCourse).toBe(262);
+          expect(secondCallsFoundSegment.minimumSafeAltitude).toBe(5000);
         });
       });
     });
@@ -94,7 +93,7 @@ describe('RouteSegmentService', () => {
       trueCourse: 290,
       distance: 2700,
       _links: undefined
-    }
+    };
     service.saveRouteSegment(newSegment).subscribe(() => {
       service.findRouteSegment('LOWI', 'KJFK').subscribe((foundSegment: RouteSegment) => {
           expect(foundSegment.sourcePointId).toBe('LOWI');

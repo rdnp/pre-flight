@@ -35,11 +35,11 @@ export class FlightListComponent implements OnInit {
 
   public deleteFlight(name: string) {
     this.flightService.deleteFlight(name).subscribe(
-      data =>{
+      data => {
         console.log(data);
         this.loadFlights();
       },
-      error =>{
+      error => {
         console.log(error);
         this.loadFlights();
       }
