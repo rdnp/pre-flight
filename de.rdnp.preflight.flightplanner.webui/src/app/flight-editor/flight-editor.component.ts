@@ -134,8 +134,8 @@ export class FlightEditorComponent implements OnInit {
   setMinimumSafeAltitude(fromPointId: string, toPointId: string, minimumSafeAltitude: number) {
     if ((minimumSafeAltitude < -2000) || (minimumSafeAltitude > 100000) || (!this.getRouteSegment(fromPointId, toPointId))) {
       alert('You entered a minimum safe altitude that is outside reasonable range.\n' +
-        'Values allowed are between -2000 and 100000.' +
-        'Altitude values are given in feet above MSL.' +
+        'Values allowed are between -2000 and 100000.\n' +
+        'Altitude values are given in feet above MSL.\n' +
         'Please correct the value, as invalid values will not be saved.\n' +
         'Refreshing the page will restore the last valid value.');
       return;
@@ -150,8 +150,8 @@ export class FlightEditorComponent implements OnInit {
   setDistance(fromPointId: string, toPointId: string, distance: number) {
     if (distance < 0 || distance > 23000 || !this.getRouteSegment(fromPointId, toPointId)) {
       alert('You entered a distance is outside reasonable range.' +
-        'Values allowed are between 0 and 23000.' +
-        'Distance values are given in NM.' +
+        'Values allowed are between 0 and 23000.\n' +
+        'Distance values are given in NM.\n' +
         'Please correct the value, as invalid values will not be saved.\n' +
         'Refreshing the page will restore the last valid value.');
       return;
