@@ -30,11 +30,13 @@ export class Flight {
     pointIds: string[];
     _links: FlightLinks;
 
-    constructor(name: string, origin: string, destination: string, alternate: string, aircraftType: string, _links: FlightLinks) {
+    constructor(name: string, origin: string, destination: string, alternate: string, aircraftType: string, pointIds: string[],
+        _links: FlightLinks) {
         this.name = name;
         this.origin = origin;
         this.destination = destination;
         this.aircraftType = aircraftType;
+        this.pointIds = pointIds;
         this.alternate = alternate;
     }
 }

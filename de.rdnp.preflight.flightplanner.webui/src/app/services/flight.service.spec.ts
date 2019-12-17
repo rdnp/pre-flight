@@ -63,6 +63,7 @@ describe('FlightService', () => {
       service.getFlightByName('').subscribe(flightData => {
         expect(flightData.origin).toEqual('');
         expect(flightData.destination).toEqual('');
+        expect(flightData.pointIds.length).toBe(2);
       });
     }));
 

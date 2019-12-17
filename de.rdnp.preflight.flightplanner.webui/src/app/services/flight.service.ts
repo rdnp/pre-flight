@@ -29,7 +29,7 @@ export class FlightService {
         if (response._embedded.flights.length > 0) {
           return response._embedded.flights[0];
         }
-        return new Flight('', '', '', '', '', null);
+        return new Flight('', '', '', '', '', ['', ''], null);
       })
     );
   }
