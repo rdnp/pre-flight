@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { Flight, RouteSegment } from 'src/data.model';
 import { FlightService } from '../services/flight.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
@@ -20,8 +20,7 @@ export class FlightEditorComponent implements OnInit {
 
   constructor(private flightService: FlightService,
     private routeSegmentService: RouteSegmentService,
-    private route: ActivatedRoute,
-    private changeDetector: ChangeDetectorRef) {
+    private route: ActivatedRoute) {
     this.routeSegments = new Map();
   }
 
@@ -121,7 +120,7 @@ export class FlightEditorComponent implements OnInit {
         'Values allowed are between 0 and 360.\n' +
         'Course values are given in degrees.\n' +
         'Please correct the value, as invalid values will not be saved.\n' +
-        'Refreshing the page will restore the last valid value.');
+        'Refreshing this page will restore saved values.');
       return;
     }
     this.getRouteSegment(fromPointId, toPointId).trueCourse = trueCourse;
@@ -137,7 +136,7 @@ export class FlightEditorComponent implements OnInit {
         'Values allowed are between -2000 and 100000.\n' +
         'Altitude values are given in feet above MSL.\n' +
         'Please correct the value, as invalid values will not be saved.\n' +
-        'Refreshing the page will restore the last valid value.');
+        'Refreshing this page will restore saved values..');
       return;
     }
     this.getRouteSegment(fromPointId, toPointId).minimumSafeAltitude = minimumSafeAltitude;
@@ -153,7 +152,7 @@ export class FlightEditorComponent implements OnInit {
         'Values allowed are between 0 and 23000.\n' +
         'Distance values are given in NM.\n' +
         'Please correct the value, as invalid values will not be saved.\n' +
-        'Refreshing the page will restore the last valid value.');
+        'Refreshing this page will restore saved values.');
       return;
     }
     this.getRouteSegment(fromPointId, toPointId).distance = distance;
