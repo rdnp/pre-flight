@@ -283,7 +283,7 @@ describe('FlightEditorComponent', () => {
 
     expect(component.findLoadedRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(-1);
     component.setMinimumSafeAltitude('START', 'DEST', '5000');
-    expect(component.findLoadedRouteSegment('START', 'DEST').minimumSafeAltitude).toBe('5000');
+    expect(component.findLoadedRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(5000);
 
     expect(component.findLoadedRouteSegment('START', 'DEST').trueCourse).toBe(-1);
     component.setTrueCourse('START', 'DEST', '140');
@@ -305,7 +305,7 @@ describe('FlightEditorComponent', () => {
     component.setTrueCourse('START', 'DEST2', '320'); // non-existing route sgement, not allowed
     expect(component.findLoadedRouteSegment('START', 'DEST').trueCourse).toBe(140);
 
-    expect(magneticCourseUpdate).toHaveBeenCalledTimes(1);
+    expect(magneticCourseUpdate).toHaveBeenCalledTimes(3);
     expect(component.findLoadedRouteSegment('START', 'DEST2')).toBeFalsy();
   });
 
@@ -330,7 +330,7 @@ describe('FlightEditorComponent', () => {
     component.setTrueAirspeed(0, '100');
     component.setAltitude(0, '3000');
 
-    expect(magneticCourseUpdate).toHaveBeenCalledTimes(1);
+    expect(magneticCourseUpdate).toHaveBeenCalledTimes(3);
     expect(fuelUpdate).toHaveBeenCalledTimes(1);
     expect(magneticHeadingUpdate).toHaveBeenCalledTimes(2);
 

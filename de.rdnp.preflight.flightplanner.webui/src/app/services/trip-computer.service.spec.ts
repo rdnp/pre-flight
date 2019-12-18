@@ -80,10 +80,10 @@ describe('TripComputerService', () => {
     const service: TripComputerService = TestBed.get(TripComputerService);
     defaultTestTripSegment.magneticCourse = 320;
     defaultTestTripSegment.variation = 2;
-    service.updateMagneticCourse(defaultTestTripSegment, 10);
+    service.updateMagneticCourse(defaultTestTripSegment, 318, 10);
     expect(Math.round(defaultTestTripSegment.magneticHeading)).toBe(323);
     expect(Math.round(defaultTestTripSegment.groundSpeed)).toBe(111);
     expect(Math.round(defaultTestTripSegment.time)).toBe(5);
-    expect(defaultTestTripSegment.fuel).toBe(0.8976462786813262);
+    expect(defaultTestTripSegment.fuel).toBe(0.8333333333333334);
   });
 });
