@@ -12,7 +12,7 @@ export class RouteSegmentService {
   constructor(private http: HttpClient) { }
 
   /**
-   * Tries finding the inverse route segment from the repository and derive a route segmentout of it. 
+   * Tries finding the inverse route segment from the repository and derive a route segmentout of it.
    * Will return a new empty route segment if it finds no inverse route segment.
    */
   private deriveRouteSegmentFromInverse(sourcePointId: string, targetPointId: string) {

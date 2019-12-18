@@ -9,20 +9,42 @@
 <h2>Flight Route</h2>
 <div>
   <table *ngIf="flight?.pointIds">
-    <!-- <tr>Route points: {{flight.pointIds}}</tr> -->
     <ng-container *ngFor="let routePoint of flight.pointIds; index as i; trackBy:trackByIndex">
       <tr>
         <td><button (click)="removePoint(i)">&minus;</button></td>
-        <td><input [value]="flight.pointIds[i]" (input)="setPointId(i, $event.target.value)" size="12"/></td>
+        <td colspan="3"><input [value]="flight.pointIds[i]" (input)="setPointId(i, $event.target.value)" size="18" />
+        </td>
       </tr>
       <tr *ngIf="i < flight.pointIds.length - 1">
+        <!-- Static point data -->
         <td><button (click)="insertPoint(i)">+</button></td>
-        <td>MSA:<input [value]="getRouteSegment(routePoint,flight.pointIds[i+1])?.minimumSafeAltitude"
+        <td>MSA(ft)<br><input [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.minimumSafeAltitude"
             (input)="setMinimumSafeAltitude(routePoint,flight.pointIds[i+1], $event.target.value)" size="5" /></td>
-        <td>TC:<input [value]="getRouteSegment(routePoint,flight.pointIds[i+1])?.trueCourse"
+        <td>TC<br><input [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.trueCourse"
             (input)="setTrueCourse(routePoint,flight.pointIds[i+1], $event.target.value)" size="3" /></td>
-        <td>D:<input [value]="getRouteSegment(routePoint,flight.pointIds[i+1])?.distance"
-            (input)="setDistance(routePoint,flight.pointIds[i+1], $event.target.value)" size="4" /></td>
+        <td>d(NM)<br><input [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.distance"
+            (input)="setDistance(routePoint,flight.pointIds[i+1], $event.target.value)" size="2" /></td>
+
+        <!-- Route-segment trip input data -->
+        <td>VAR<br><input size="3" [value]="tripSegments?.get(i).variation"
+            (input)="setVariation(i, $event.target.value)" /></td>
+        <td>FCR(h)<br><input size="3" [value]="tripSegments?.get(i).fuelConsumptionRate"
+            (input)="setFuelConsumptionRate(i, $event.target.value)" /></td>
+        <td>W / V<br><input size="3" [value]="tripSegments?.get(i).windDirection"
+            (input)="setWindVector(i, $event.target.value, tripSegments?.get(i).windSpeed)" /> /
+          <input size="2" [value]="tripSegments?.get(i).windSpeed"
+            (input)="setWindVector(i, tripSegments?.get(i).windDirection, $event.target.value)" /></td>
+        <td>TAS(kt)<br><input size="3" [value]="tripSegments?.get(i).trueAirspeed"
+            (input)="setTrueAirspeed(i, $event.target.value)" /></td>
+        <td>ALT(ft)<br><input size="5" [value]="tripSegments?.get(i).altitude"
+            (input)="setAltitude(i, $event.target.value)" /></td>
+
+        <!-- Route-segment trip derived (output) data (displayed in input boxes to allow for corrections) -->
+        <td>MC<br><input size="3" [value]="tripSegments?.get(i).magneticCourse" readonly="true" /></td>
+        <td>MH<br><input size="3" [value]="tripSegments?.get(i).magneticHeading" readonly="true" /></td>
+        <td>GS(kt)<br><input size="3" [value]="tripSegments?.get(i).groundSpeed" readonly="true" /></td>
+        <td>t(min)<br><input size="2" [value]="tripSegments?.get(i).time" /></td>
+        <td>F<br><input size="3" [value]="tripSegments?.get(i).fuel.toFixed(1)" readonly="true" /></td>
       </tr>
     </ng-container>
   </table>

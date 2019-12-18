@@ -7,6 +7,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { RouteSegmentService } from '../services/route-segment.service';
+import { TripComputerService } from '../services/trip-computer.service';
 
 class MockFlightService extends FlightService {
 
@@ -20,7 +21,8 @@ class MockFlightService extends FlightService {
 
   getFlightByName(name: string) {
     return of(JSON.parse(
-      '{ "name": "Trip to Berlin","aircraftType": "C172", "origin": "EDTQ","destination": "EDDB","alternate": "EDDT", "pointIds": [] }'));
+      '{ "name": "Trip to Berlin","aircraftType": "C172", "origin": "EDTQ","destination": "EDDB","alternate": "EDDT", "pointIds": ' +
+      '[ "EDTQ", "EDDB" ] }'));
   }
 
   saveFlight() {
@@ -35,6 +37,7 @@ class MockActivatedRoute extends ActivatedRoute {
     this.params = of({ name: 'Trip to Berlin' });
   }
 }
+
 
 describe('FlightEditorComponent', () => {
   let component: FlightEditorComponent;
@@ -66,6 +69,8 @@ describe('FlightEditorComponent', () => {
     expect(fixture.componentInstance.flight).toBeTruthy();
     expect(fixture.componentInstance.flight.name).toBe('Trip to Berlin');
     expect(fixture.componentInstance.flight.destination).toBe('EDDB');
+    expect(fixture.componentInstance.routeSegments.size).toBe(1);
+    expect(fixture.componentInstance.tripSegments.size).toBe(1);
   });
 
   it('should create a flight through FlightService on saving', async () => {
@@ -78,107 +83,136 @@ describe('FlightEditorComponent', () => {
     expect(createSpy).toHaveBeenCalled();
   });
 
-  it('should insert points into a flight at the right positions', async () => {
-    await fixture.whenStable();
-    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
-      sourcePointId: '',
-      targetPointId: '',
+  function defaultRouteSegmentObservable(from: string, to: string) {
+    return of({
+      sourcePointId: from,
+      targetPointId: to,
       minimumSafeAltitude: -1,
       trueCourse: -1,
       distance: -1,
       _links: undefined
-    }));
+    });
+  }
 
-    // begin inserting two points for start and destination
-    component.insertPoint(0);
-    component.insertPoint(0);
-    expect(component.flight.pointIds.length).toBe(2);
-    component.flight.pointIds[0] = 'START';
-    component.flight.pointIds[1] = 'DEST';
+  it('should get the right route segment for a trip segment', async () => {
+    await fixture.whenStable();
+    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
+    component.setPointId(0, 'EDTQ');
+    component.setPointId(1, 'EDDB');
+    await fixture.whenStable();
 
-    // now insert point between start and dest
-    component.insertPoint(0);
-    component.flight.pointIds[1] = 'ENR-1';
-    expect(component.flight.pointIds.length).toBe(3);
-    expect(component.flight.pointIds[0]).toBe('START');
-    expect(component.flight.pointIds[1]).toBe('ENR-1');
-    expect(component.flight.pointIds[2]).toBe('DEST');
+    expect(component.tripSegments.size).toBe(1);
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).sourcePointId).toBe('EDTQ');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).targetPointId).toBe('EDDB');
 
-    // now insert point between ENR-1 and dest
-    component.insertPoint(1);
-    component.flight.pointIds[2] = 'ENR-2';
-    expect(component.flight.pointIds.length).toBe(4);
-    expect(component.flight.pointIds[0]).toBe('START');
-    expect(component.flight.pointIds[1]).toBe('ENR-1');
-    expect(component.flight.pointIds[2]).toBe('ENR-2');
-    expect(component.flight.pointIds[3]).toBe('DEST');
+    // cross-check: non existing segment
+    expect(component.findTripSegmentRouting(component.tripSegments.get(1)).sourcePointId).toBe('');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(1)).targetPointId).toBe('');
   });
 
-  it('should insert points into a flight at the right positions', async () => {
+  it('should get the right trip segments related to a route segment', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
-      sourcePointId: '',
-      targetPointId: '',
-      minimumSafeAltitude: -1,
-      trueCourse: -1,
-      distance: -1,
-      _links: undefined
-    }));
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
+    component.setPointId(0, 'EDTQ');
+    component.setPointId(1, 'EDDB');
+    await fixture.whenStable();
 
-    // begin inserting two points for start and destination
+    expect(component.tripSegments.size).toBe(1);
+    expect(component.findRelatedTripSegments('EDTQ', 'EDDB').length).toBe(1);
+
+    // cross-check: non existing segment
+    expect(component.findRelatedTripSegments('EDTQ', 'EDTY').length).toBe(0);
+  });
+
+  it('should insert points (and its corresponding tripSegments) into a flight at the right positions', async () => {
+    await fixture.whenStable();
+    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
+    expect(component.tripSegments.size).toBe(1);
+
+    // now insert point between start and dest
     component.insertPoint(0);
-    component.insertPoint(0);
-    expect(component.flight.pointIds.length).toBe(2);
-    component.flight.pointIds[0] = 'START';
-    component.flight.pointIds[1] = 'DEST';
+    component.setPointId(1, 'ENR-1');
+    await fixture.whenStable();
+
+    // quick-check
+    expect(component.flight.pointIds.length).toBe(3);
+    expect(component.tripSegments.size).toBe(2);
+    // investigate points
+    expect(component.flight.pointIds[0]).toBe('EDTQ');
+    expect(component.flight.pointIds[1]).toBe('ENR-1');
+    expect(component.flight.pointIds[2]).toBe('EDDB');
+    // investigate trip-segments
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).sourcePointId).toBe('EDTQ');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).targetPointId).toBe('ENR-1');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(1)).sourcePointId).toBe('ENR-1');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(1)).targetPointId).toBe('EDDB');
+
+    // now insert point between ENR-1 and dest
+    component.insertPoint(1);
+    component.setPointId(2, 'ENR-2');
+    await fixture.whenStable();
+
+    // quick-check
+    expect(component.flight.pointIds.length).toBe(4);
+    expect(component.tripSegments.size).toBe(3);
+    // investigate points
+    expect(component.flight.pointIds[0]).toBe('EDTQ');
+    expect(component.flight.pointIds[1]).toBe('ENR-1');
+    expect(component.flight.pointIds[2]).toBe('ENR-2');
+    expect(component.flight.pointIds[3]).toBe('EDDB');
+    // investigate trip-segments
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).sourcePointId).toBe('EDTQ');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).targetPointId).toBe('ENR-1');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(1)).sourcePointId).toBe('ENR-1');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(1)).targetPointId).toBe('ENR-2');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(2)).sourcePointId).toBe('ENR-2');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(2)).targetPointId).toBe('EDDB');
+  });
+
+  it('should remove a point (and its corresponding tripSegment) from a flight', async () => {
+    await fixture.whenStable();
+    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
 
     // now insert point between start and dest
     component.insertPoint(0);
     component.flight.pointIds[1] = 'ENR-1';
     expect(component.flight.pointIds.length).toBe(3);
-    expect(component.flight.pointIds[0]).toBe('START');
+    expect(component.tripSegments.size).toBe(2);
+    expect(component.flight.pointIds[0]).toBe('EDTQ');
     expect(component.flight.pointIds[1]).toBe('ENR-1');
-    expect(component.flight.pointIds[2]).toBe('DEST');
+    expect(component.flight.pointIds[2]).toBe('EDDB');
 
-    // now insert point between ENR-1 and dest
-    component.insertPoint(1);
-    component.flight.pointIds[2] = 'ENR-2';
-    expect(component.flight.pointIds.length).toBe(4);
-    expect(component.flight.pointIds[0]).toBe('START');
-    expect(component.flight.pointIds[1]).toBe('ENR-1');
-    expect(component.flight.pointIds[2]).toBe('ENR-2');
-    expect(component.flight.pointIds[3]).toBe('DEST');
+    // now remove point ENR-1
+    component.removePoint(1);
+
+    // quick-check
+    expect(component.flight.pointIds.length).toBe(2);
+    expect(component.tripSegments.size).toBe(1);
+    // investigate points
+    expect(component.flight.pointIds[0]).toBe('EDTQ');
+    expect(component.flight.pointIds[1]).toBe('EDDB');
+    // investigate trip-segments
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).sourcePointId).toBe('EDTQ');
+    expect(component.findTripSegmentRouting(component.tripSegments.get(0)).targetPointId).toBe('EDDB');
   });
 
   it('should save route segments from a flight on saving the flight', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
     const saveSpy = spyOn(routeSegmentService, 'saveRouteSegment').and.returnValue(of({}));
-    spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
-      sourcePointId: '',
-      targetPointId: '',
-      minimumSafeAltitude: -1,
-      trueCourse: -1,
-      distance: -1,
-      _links: undefined
-    }));
-
-    // begin inserting two points for start and destination
-    component.insertPoint(0);
-    component.insertPoint(0);
-    expect(component.flight.pointIds.length).toBe(2);
-    component.flight.pointIds[0] = 'START';
-    component.flight.pointIds[1] = 'DEST';
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
 
     // now insert point between start and dest
     component.insertPoint(0);
     component.flight.pointIds[1] = 'ENR-1';
     expect(component.flight.pointIds.length).toBe(3);
-    expect(component.flight.pointIds[0]).toBe('START');
+    expect(component.flight.pointIds[0]).toBe('EDTQ');
     expect(component.flight.pointIds[1]).toBe('ENR-1');
-    expect(component.flight.pointIds[2]).toBe('DEST');
+    expect(component.flight.pointIds[2]).toBe('EDDB');
 
     // now save the flight
     component.save();
@@ -187,94 +221,39 @@ describe('FlightEditorComponent', () => {
     expect(saveSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('should remove a point from route segments', async () => {
-    await fixture.whenStable();
-    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
-      sourcePointId: '',
-      targetPointId: '',
-      minimumSafeAltitude: -1,
-      trueCourse: -1,
-      distance: -1,
-      _links: undefined
-    }));
-
-    // begin inserting two points for start and destination
-    component.insertPoint(0);
-    component.insertPoint(0);
-    expect(component.flight.pointIds.length).toBe(2);
-    component.flight.pointIds[0] = 'START';
-    component.flight.pointIds[1] = 'DEST';
-
-    // now insert point between start and dest
-    component.insertPoint(0);
-    component.flight.pointIds[1] = 'ENR-1';
-    expect(component.flight.pointIds.length).toBe(3);
-    expect(component.flight.pointIds[0]).toBe('START');
-    expect(component.flight.pointIds[1]).toBe('ENR-1');
-    expect(component.flight.pointIds[2]).toBe('DEST');
-
-    // now remove point ENR-1
-    component.removePoint(1);
-    expect(component.flight.pointIds.length).toBe(2);
-    expect(component.flight.pointIds[0]).toBe('START');
-    expect(component.flight.pointIds[1]).toBe('DEST');
-  });
-
   it('should load all route segments between points of a flight', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
-      sourcePointId: '',
-      targetPointId: '',
-      minimumSafeAltitude: -1,
-      trueCourse: -1,
-      distance: -1,
-      _links: undefined
-    }));
-
-    // begin inserting two points for start and destination
-    component.insertPoint(0);
-    component.insertPoint(0);
-    expect(component.flight.pointIds.length).toBe(2);
-    component.flight.pointIds[0] = 'START';
-    component.flight.pointIds[1] = 'DEST';
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
 
     component.loadMissingRouteSegments();
     await fixture.whenStable();
-    expect(component.getRouteSegment('START', 'DEST')).toBeTruthy();
+    expect(component.findLoadedRouteSegment('EDTQ', 'EDDB')).toBeTruthy();
 
     // now insert point between start and dest
     component.insertPoint(0);
     component.flight.pointIds[1] = 'ENR-1';
     expect(component.flight.pointIds.length).toBe(3);
-    expect(component.flight.pointIds[0]).toBe('START');
+    expect(component.flight.pointIds[0]).toBe('EDTQ');
     expect(component.flight.pointIds[1]).toBe('ENR-1');
-    expect(component.flight.pointIds[2]).toBe('DEST');
+    expect(component.flight.pointIds[2]).toBe('EDDB');
 
     component.loadMissingRouteSegments();
     await fixture.whenStable();
-    expect(component.getRouteSegment('START', 'ENR-1')).toBeTruthy();
-    expect(component.getRouteSegment('ENR-1', 'DEST')).toBeTruthy();
+    expect(component.findLoadedRouteSegment('EDTQ', 'ENR-1')).toBeTruthy();
+    expect(component.findLoadedRouteSegment('ENR-1', 'EDDB')).toBeTruthy();
   });
 
   it('should get route segment for points from route segment service', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    const findRouteSegmentSpy = spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
-      sourcePointId: '',
-      targetPointId: '',
-      minimumSafeAltitude: -1,
-      trueCourse: -1,
-      distance: -1,
-      _links: undefined
-    }));
+    const findRouteSegmentSpy = spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
 
     component.loadRouteSegment('START', 'DEST');
     expect(findRouteSegmentSpy).toHaveBeenCalled();
 
     await fixture.whenStable();
-    expect(component.getRouteSegment('START', 'DEST')).toBeTruthy();
+    expect(component.findLoadedRouteSegment('START', 'DEST')).toBeTruthy();
   });
 
   it('should save route segment for points to route segment service', async () => {
@@ -290,51 +269,76 @@ describe('FlightEditorComponent', () => {
   it('should set/assign the proper values for a route segment update', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({
-      sourcePointId: 'START',
-      targetPointId: 'DEST',
-      minimumSafeAltitude: -1,
-      trueCourse: -1,
-      distance: -1,
-      _links: undefined
-    }));
-
-    // begin inserting two points for start and destination
-    component.insertPoint(0);
-    component.insertPoint(0);
-    expect(component.flight.pointIds.length).toBe(2);
+    const tripComputerService = fixture.debugElement.injector.get(TripComputerService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
+    const magneticCourseUpdate = spyOn(tripComputerService, 'updateMagneticCourse');
 
     component.setPointId(0, 'START');
     component.setPointId(1, 'DEST');
+    await fixture.whenStable();
 
-    expect(component.getRouteSegment('START', 'DEST').distance).toBe(-1);
-    component.setDistance('START', 'DEST', 5);
-    expect(component.getRouteSegment('START', 'DEST').distance).toBe(5);
+    expect(component.findLoadedRouteSegment('START', 'DEST').distance).toBe(-1);
+    component.setDistance('START', 'DEST', '5');
+    expect(component.findLoadedRouteSegment('START', 'DEST').distance).toBe(5);
 
-    expect(component.getRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(-1);
-    component.setMinimumSafeAltitude('START', 'DEST', 5000);
-    expect(component.getRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(5000);
+    expect(component.findLoadedRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(-1);
+    component.setMinimumSafeAltitude('START', 'DEST', '5000');
+    expect(component.findLoadedRouteSegment('START', 'DEST').minimumSafeAltitude).toBe('5000');
 
-    expect(component.getRouteSegment('START', 'DEST').trueCourse).toBe(-1);
-    component.setTrueCourse('START', 'DEST', 140);
-    expect(component.getRouteSegment('START', 'DEST').trueCourse).toBe(140);
+    expect(component.findLoadedRouteSegment('START', 'DEST').trueCourse).toBe(-1);
+    component.setTrueCourse('START', 'DEST', '140');
+    expect(component.findLoadedRouteSegment('START', 'DEST').trueCourse).toBe(140);
 
     // error values
-    component.setDistance('START', 'DEST', -3); // negative, not allowed
-    component.setDistance('START', 'DEST', 25000); // more than earth circumference, not allowed
-    component.setDistance('START', 'DEST2', 50); // non-existing route sgement, not allowed
-    expect(component.getRouteSegment('START', 'DEST').distance).toBe(5);
+    component.setDistance('START', 'DEST', '-3'); // negative, not allowed
+    component.setDistance('START', 'DEST', '25000'); // more than earth circumference, not allowed
+    component.setDistance('START', 'DEST2', '50'); // non-existing route sgement, not allowed
+    expect(component.findLoadedRouteSegment('START', 'DEST').distance).toBe(5);
 
-    component.setMinimumSafeAltitude('START', 'DEST', -5000); // negative and below -2000, not allowed
-    component.setMinimumSafeAltitude('START', 'DEST', 101000); // more than 100,000ft, not allowed
-    component.setMinimumSafeAltitude('START', 'DEST2', 5000); // non-existing route sgement, not allowed
-    expect(component.getRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(5000);
+    component.setMinimumSafeAltitude('START', 'DEST', '-5000'); // negative and below -2000, not allowed
+    component.setMinimumSafeAltitude('START', 'DEST', '101000'); // more than 100,000ft, not allowed
+    component.setMinimumSafeAltitude('START', 'DEST2', '5000'); // non-existing route sgement, not allowed
+    expect(component.findLoadedRouteSegment('START', 'DEST').minimumSafeAltitude).toBe(5000);
 
-    component.setTrueCourse('START', 'DEST', -9); // negative, not allowed
-    component.setTrueCourse('START', 'DEST', 400); // more than 360°, not allowed
-    component.setTrueCourse('START', 'DEST2', 320); // non-existing route sgement, not allowed
-    expect(component.getRouteSegment('START', 'DEST').trueCourse).toBe(140);
+    component.setTrueCourse('START', 'DEST', '-9'); // negative, not allowed
+    component.setTrueCourse('START', 'DEST', '400'); // more than 360°, not allowed
+    component.setTrueCourse('START', 'DEST2', '320'); // non-existing route sgement, not allowed
+    expect(component.findLoadedRouteSegment('START', 'DEST').trueCourse).toBe(140);
 
-    expect(component.getRouteSegment('START', 'DEST2')).toBeFalsy();
+    expect(magneticCourseUpdate).toHaveBeenCalledTimes(1);
+    expect(component.findLoadedRouteSegment('START', 'DEST2')).toBeFalsy();
+  });
+
+  it('should set/assign the proper values for a trip segment update', async () => {
+    await fixture.whenStable();
+    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
+    const tripComputerService = fixture.debugElement.injector.get(TripComputerService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
+    const magneticCourseUpdate = spyOn(tripComputerService, 'updateMagneticCourse');
+    const magneticHeadingUpdate = spyOn(tripComputerService, 'updateMagneticHeading');
+    const fuelUpdate = spyOn(tripComputerService, 'updateFuel');
+
+    component.setPointId(0, 'START');
+    component.setPointId(1, 'DEST');
+    await fixture.whenStable();
+
+    expect(component.tripSegments.size).toBe(1);
+
+    component.setVariation(0, '2');
+    component.setFuelConsumptionRate(0, '9');
+    component.setWindVector(0, '250', '10');
+    component.setTrueAirspeed(0, '100');
+    component.setAltitude(0, '3000');
+
+    expect(magneticCourseUpdate).toHaveBeenCalledTimes(1);
+    expect(fuelUpdate).toHaveBeenCalledTimes(1);
+    expect(magneticHeadingUpdate).toHaveBeenCalledTimes(2);
+
+    expect(component.tripSegments.get(0).altitude).toBe(3000);
+    expect(component.tripSegments.get(0).trueAirspeed).toBe(100);
+    expect(component.tripSegments.get(0).windDirection).toBe(250);
+    expect(component.tripSegments.get(0).windSpeed).toBe(10);
+    expect(component.tripSegments.get(0).fuelConsumptionRate).toBe(9);
+    expect(component.tripSegments.get(0).variation).toBe(2);
   });
 });

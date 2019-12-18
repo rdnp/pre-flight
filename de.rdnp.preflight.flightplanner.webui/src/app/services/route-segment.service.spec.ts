@@ -70,7 +70,7 @@ describe('RouteSegmentService', () => {
       expect(foundSegment.minimumSafeAltitude).toBe(-1);
     });
   }));
-  
+
   it('finds the inverse of route segment in the test data', async(() => {
     service.findRouteSegment('EDTY', 'DKB').subscribe((foundSegment: RouteSegment) => {
       expect(foundSegment.sourcePointId).toBe('EDTY');
