@@ -79,10 +79,12 @@ export class FlightEditorComponent implements OnInit {
         newPoints[i] = ''; // initialize new point with empty string
       } else {
         newPoints[i] = this.flight.pointIds[i - 1];
-        this.tripSegments.set(i - 1, this.tripSegments.get(i - 2));
       }
     }
     this.loadMissingRouteSegments();
+    for (let i = newPoints.length - 2; i > index; i--) {
+      this.tripSegments.set(i, this.tripSegments.get(i - 1));
+    }
     this.tripSegments.set(index, this.newTripSegment());
     this.flight.pointIds = newPoints;
   }
