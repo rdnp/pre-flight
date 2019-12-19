@@ -367,7 +367,7 @@ describe('FlightEditorComponent', () => {
     expect(component.tripSegments.get(0).windSpeed).toBe(0);
     expect(component.tripSegments.get(0).hourlyFuelConsumptionRate).toBe(0);
     expect(component.tripSegments.get(0).variation).toBe(0);
-    expect(component.tripSegments.get(0).timeInMinutes).toBe(0);
+    expect(component.tripSegments.get(0).timeInMinutes).toBe(-60);
   });
 
   it('should get the proper distance for a trip segment', async () => {
