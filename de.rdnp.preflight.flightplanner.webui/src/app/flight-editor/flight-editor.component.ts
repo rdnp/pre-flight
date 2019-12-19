@@ -5,6 +5,7 @@ import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
 import { RouteSegmentService } from '../services/route-segment.service';
 import { TripComputerService } from '../services/trip-computer.service';
+import { TripManager } from './trip-manager';
 
 @Component({
   selector: 'app-flight-editor',
@@ -21,6 +22,8 @@ export class FlightEditorComponent implements OnInit {
 
   @Input()
   tripSegments: Map<number, TripSegment>;
+
+  private tripManager: TripManager;
 
   constructor(private flightService: FlightService,
     // tslint:disable-next-line: align
@@ -41,8 +44,12 @@ export class FlightEditorComponent implements OnInit {
     ).subscribe((result: Flight) => {
       this.flight = result;
       this.loadMissingRouteSegments();
-      this.initializeAllTripSegments();
+      this.tripManager = new TripManager(this.flight, this.routeSegments, this.tripSegments);
     });
+  }
+
+  findLoadedRouteSegment(fromPointId: string, toPointId: string) {
+    return this.tripManager.findLoadedRouteSegment(fromPointId, toPointId);
   }
 
   save() {
@@ -54,54 +61,16 @@ export class FlightEditorComponent implements OnInit {
     }
   }
 
-  newTripSegment() {
-    return {
-      variation: 0,
-      fuelConsumptionRate: 0,
-      windDirection: 0,
-      windSpeed: 0,
-      trueAirspeed: 1,
-      altitude: 0,
-      magneticCourse: 0,
-      magneticHeading: 0,
-      groundSpeed: 0,
-      time: 0,
-      fuel: 0
-    };
-  }
-
   insertPoint(index: number) {
-    const newPoints = new Array<string>(this.flight.pointIds.length + 1);
-    for (let i = 0; i < newPoints.length; i++) {
-      if (i < index + 1) {
-        newPoints[i] = this.flight.pointIds[i];
-      } else if (i === index + 1) {
-        newPoints[i] = ''; // initialize new point with empty string
-      } else {
-        newPoints[i] = this.flight.pointIds[i - 1];
-      }
-    }
+    this.tripManager.insertPoint(index);
+    this.flight.pointIds = this.tripManager.pointIds;
     this.loadMissingRouteSegments();
-    for (let i = newPoints.length - 2; i > index; i--) {
-      this.tripSegments.set(i, this.tripSegments.get(i - 1));
-    }
-    this.tripSegments.set(index, this.newTripSegment());
-    this.flight.pointIds = newPoints;
   }
 
   removePoint(index: number) {
-    const newPoints = new Array<string>(this.flight.pointIds.length - 1);
-    for (let i = 0; i < newPoints.length; i++) {
-      if (i < index) {
-        newPoints[i] = this.flight.pointIds[i];
-      } else {
-        newPoints[i] = this.flight.pointIds[i + 1];
-        this.tripSegments.set(i - 1, this.tripSegments.get(i));
-      }
-    }
+    this.tripManager.removePoint(index);
+    this.flight.pointIds = this.tripManager.pointIds;
     this.loadMissingRouteSegments();
-    this.flight.pointIds = newPoints;
-    this.tripSegments.delete(newPoints.length - 1);
   }
 
   loadMissingRouteSegments() {
@@ -114,22 +83,12 @@ export class FlightEditorComponent implements OnInit {
     }
   }
 
-  initializeAllTripSegments() {
-    // we need at least two points...
-    if (this.flight.pointIds.length > 1) {
-      // iterate all points but the last one to load the legs starting from them
-      for (let pointIndex = 0; pointIndex < this.flight.pointIds.length - 1; pointIndex++) {
-        this.tripSegments.set(pointIndex, this.newTripSegment());
-      }
-    }
-  }
-
   loadRouteSegment(fromPointId: string, toPointId: string) {
     this.routeSegmentService.findRouteSegment(fromPointId, toPointId).subscribe((foundRouteSegment) => {
       if (!this.findLoadedRouteSegment(fromPointId, toPointId)) {
         this.routeSegments.set(fromPointId + '\0' + toPointId, foundRouteSegment);
       }
-      this.findRelatedTripSegments(fromPointId, toPointId).forEach((leg) => {
+      this.tripManager.findRelatedTripSegments(fromPointId, toPointId).forEach((leg) => {
         this.tripComputeService.updateMagneticCourse(leg, foundRouteSegment.trueCourse, foundRouteSegment.distance);
       });
     });
@@ -137,33 +96,6 @@ export class FlightEditorComponent implements OnInit {
 
   saveRouteSegment(fromPointId: string, toPointId: string) {
     this.routeSegmentService.saveRouteSegment(this.routeSegments.get(fromPointId + '\0' + toPointId));
-  }
-
-  findLoadedRouteSegment(fromPointId: string, toPointId: string) {
-    return this.routeSegments.get(fromPointId + '\0' + toPointId);
-  }
-
-  findTripSegmentRouting(leg: TripSegment): RouteSegment {
-    let foundSegment = { sourcePointId: '', targetPointId: '', trueCourse: -1, distance: -1, minimumSafeAltitude: -1, _links: undefined };
-    this.tripSegments.forEach(
-      (value, index) => {
-        if (value === leg) {
-          foundSegment = this.findLoadedRouteSegment(this.flight.pointIds[index], this.flight.pointIds[index + 1]);
-        }
-      }
-    );
-    return foundSegment;
-  }
-
-  findRelatedTripSegments(fromPointId: string, toPointId: string) {
-    const result = [];
-    this.tripSegments.forEach(
-      (value, index) => {
-        if (fromPointId === this.flight.pointIds[index] && toPointId === this.flight.pointIds[index + 1]) {
-          result.push(value);
-        }
-      });
-    return result;
   }
 
   trackByIndex(index: any) {
@@ -194,7 +126,7 @@ export class FlightEditorComponent implements OnInit {
     }
     const routeSegment = this.findLoadedRouteSegment(fromPointId, toPointId);
     routeSegment.trueCourse = trueCourse;
-    this.findRelatedTripSegments(fromPointId, toPointId).forEach(
+    this.tripManager.findRelatedTripSegments(fromPointId, toPointId).forEach(
       (leg) => {
         this.tripComputeService.updateMagneticCourse(leg, routeSegment.trueCourse, routeSegment.distance);
       });
@@ -233,7 +165,7 @@ export class FlightEditorComponent implements OnInit {
     }
     const routeSegment = this.findLoadedRouteSegment(fromPointId, toPointId);
     routeSegment.distance = distance;
-    this.findRelatedTripSegments(fromPointId, toPointId).forEach(
+    this.tripManager.findRelatedTripSegments(fromPointId, toPointId).forEach(
       (leg) => {
         leg.distance = distance;
         this.tripComputeService.updateTime(leg, routeSegment.distance);
@@ -241,61 +173,72 @@ export class FlightEditorComponent implements OnInit {
     );
   }
 
-  setVariation(tripSegmentIndex: number, newVariationInput: string) {
+  setVariation(tripSegmentIndexInput: string, newVariationInput: string) {
     //
     // TODO check variation must be between -180 .. 180
     //
+    const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
     const newVariation = parseFloat(newVariationInput);
-    const tripSegment = this.tripSegments.get(tripSegmentIndex);
-    const trueCourse = this.findTripSegmentRouting(tripSegment).trueCourse;
-    const distance = this.findTripSegmentRouting(tripSegment).distance;
+    const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
+    const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     tripSegment.variation = newVariation;
     this.tripComputeService.updateMagneticCourse(tripSegment, trueCourse, distance);
   }
 
-  setFuelConsumptionRate(tripSegmentIndex: number, newFuelConsumpationRateInput: string) {
+  setFuelConsumptionRate(tripSegmentIndexInput: string, newFuelConsumpationRateInput: string) {
     //
     // TODO check FCR must be greater zero
     //
+    const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
     const newFuelConsumpationRate = parseFloat(newFuelConsumpationRateInput);
-    const tripSegment = this.tripSegments.get(tripSegmentIndex);
     tripSegment.fuelConsumptionRate = newFuelConsumpationRate;
     this.tripComputeService.updateFuel(tripSegment);
   }
 
-  setWindVector(tripSegmentIndex: number, newWindDirectionInput: string, newWindSpeedInput: string) {
+  setWindVector(tripSegmentIndexInput: string, newWindDirectionInput: string, newWindSpeedInput: string) {
     //
     // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
     //
+    const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
     const newWindDirection = parseFloat(newWindDirectionInput);
     const newWindSpeed = parseFloat(newWindSpeedInput);
-    const tripSegment = this.tripSegments.get(tripSegmentIndex);
     tripSegment.windSpeed = newWindSpeed;
     tripSegment.windDirection = newWindDirection;
-    const trueCourse = this.findTripSegmentRouting(tripSegment).trueCourse;
-    const distance = this.findTripSegmentRouting(tripSegment).distance;
+    const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
+    const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     this.tripComputeService.updateMagneticHeading(tripSegment, trueCourse, distance);
   }
 
-  setTrueAirspeed(tripSegmentIndex: number, newTrueAirspeedInput: string) {
+  setTrueAirspeed(tripSegmentIndexInput: string, newTrueAirspeedInput: string) {
     //
     // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
     //
+    const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
     const newTrueAirspeed = parseFloat(newTrueAirspeedInput);
-    const tripSegment = this.tripSegments.get(tripSegmentIndex);
     tripSegment.trueAirspeed = newTrueAirspeed;
-    const trueCourse = this.findTripSegmentRouting(tripSegment).trueCourse;
-    const distance = this.findTripSegmentRouting(tripSegment).distance;
+    const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
+    const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     this.tripComputeService.updateMagneticHeading(tripSegment, trueCourse, distance);
   }
 
-  setAltitude(tripSegmentIndex: number, newAltitudeInput: string) {
+  setAltitude(tripSegmentIndexInput: string, newAltitudeInput: string) {
     //
     // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
     //
+    const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
     const newAltitude = parseFloat(newAltitudeInput);
-    const tripSegment = this.tripSegments.get(tripSegmentIndex);
     tripSegment.altitude = newAltitude;
     // no update needed
+  }
+
+  setTime(tripSegmentIndexInput: string, newTimeInput: string) {
+    //
+    // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
+    //
+    const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
+    const newTime = parseFloat(newTimeInput);
+    const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
+    tripSegment.time = newTime;
+    this.tripComputeService.splitTripSegmentOnTimeLimit(tripSegment, distance);
   }
 }

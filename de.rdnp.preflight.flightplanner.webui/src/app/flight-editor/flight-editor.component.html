@@ -15,6 +15,31 @@
         <td colspan="3"><input [value]="flight.pointIds[i]" (input)="setPointId(i, $event.target.value)" size="18" />
         </td>
       </tr>
+      <!-- Split off / time-limited trip segments -->
+      <tr *ngFor="let childSegment of tripSegments?.get(i)?.children; index as c">
+        <td colspan="4">Additional time-limited segment:</td>
+        <!-- Route-segment trip input data -->
+        <td>VAR<br><input size="3" [value]="childSegment.variation"
+            (input)="setVariation(i.toString() + '.' + c.toString(), $event.target.value)" /></td>
+        <td>FCR(h)<br><input size="3" [value]="childSegment.fuelConsumptionRate"
+            (input)="setFuelConsumptionRate(i + '.' + c, $event.target.value)" /></td>
+        <td>W / V<br><input size="3" [value]="childSegment.windDirection"
+            (input)="setWindVector(i + '.' + c, $event.target.value, tripSegments?.get(i).windSpeed)" /> /
+          <input size="2" [value]="childSegment.windSpeed"
+            (input)="setWindVector(i + '.' + c, tripSegments?.get(i).windDirection, $event.target.value)" /></td>
+        <td>TAS(kt)<br><input size="3" [value]="childSegment.trueAirspeed"
+            (input)="setTrueAirspeed(i + '.' + c, $event.target.value)" /></td>
+        <td>ALT(ft)<br><input size="5" [value]="childSegment.altitude"
+            (input)="setAltitude(i + '.' + c, $event.target.value)" /></td>
+        <!-- Route-segment trip derived (output) data (displayed in input boxes to allow for corrections) -->
+        <td>MC<br><input size="3" [value]="childSegment.magneticCourse" readonly="true" /></td>
+        <td>MH<br><input size="3" [value]="childSegment.magneticHeading" readonly="true" /></td>
+        <td>GS(kt)<br><input size="3" [value]="childSegment.groundSpeed" readonly="true" /></td>
+        <td>t(min)<br><input size="2" [value]="childSegment.time" (input)="setTime(i, $event.target.value)" />
+        </td>
+        <td>F<br><input size="3" [value]="childSegment.fuel.toFixed(1)" readonly="true" /></td>
+      </tr>
+      <!-- Main route / trip segment -->
       <tr *ngIf="i < flight.pointIds.length - 1">
         <!-- Static point data -->
         <td><button (click)="insertPoint(i)">+</button></td>
@@ -27,23 +52,24 @@
 
         <!-- Route-segment trip input data -->
         <td>VAR<br><input size="3" [value]="tripSegments?.get(i).variation"
-            (input)="setVariation(i, $event.target.value)" /></td>
+            (input)="setVariation(i.toString(), $event.target.value)" /></td>
         <td>FCR(h)<br><input size="3" [value]="tripSegments?.get(i).fuelConsumptionRate"
-            (input)="setFuelConsumptionRate(i, $event.target.value)" /></td>
+            (input)="setFuelConsumptionRate(i.toString(), $event.target.value)" /></td>
         <td>W / V<br><input size="3" [value]="tripSegments?.get(i).windDirection"
-            (input)="setWindVector(i, $event.target.value, tripSegments?.get(i).windSpeed)" /> /
+            (input)="setWindVector(i.toString(), $event.target.value, tripSegments?.get(i).windSpeed)" /> /
           <input size="2" [value]="tripSegments?.get(i).windSpeed"
-            (input)="setWindVector(i, tripSegments?.get(i).windDirection, $event.target.value)" /></td>
+            (input)="setWindVector(i.toString(), tripSegments?.get(i).windDirection, $event.target.value)" /></td>
         <td>TAS(kt)<br><input size="3" [value]="tripSegments?.get(i).trueAirspeed"
-            (input)="setTrueAirspeed(i, $event.target.value)" /></td>
+            (input)="setTrueAirspeed(i.toString(), $event.target.value)" /></td>
         <td>ALT(ft)<br><input size="5" [value]="tripSegments?.get(i).altitude"
-            (input)="setAltitude(i, $event.target.value)" /></td>
-
+            (input)="setAltitude(i.toString(), $event.target.value)" /></td>
         <!-- Route-segment trip derived (output) data (displayed in input boxes to allow for corrections) -->
         <td>MC<br><input size="3" [value]="tripSegments?.get(i).magneticCourse" readonly="true" /></td>
         <td>MH<br><input size="3" [value]="tripSegments?.get(i).magneticHeading" readonly="true" /></td>
         <td>GS(kt)<br><input size="3" [value]="tripSegments?.get(i).groundSpeed" readonly="true" /></td>
-        <td>t(min)<br><input size="2" [value]="tripSegments?.get(i).time" /></td>
+        <td>t(min)<br><input size="2" [value]="tripSegments?.get(i).time"
+            (input)="setTime(i.toString(), $event.target.value)" />
+        </td>
         <td>F<br><input size="3" [value]="tripSegments?.get(i).fuel.toFixed(1)" readonly="true" /></td>
       </tr>
     </ng-container>

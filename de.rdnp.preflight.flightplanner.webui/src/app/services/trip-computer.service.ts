@@ -20,6 +20,10 @@ export class TripComputerService {
     return distance / groundSpeed * 60;
   }
 
+  distance(timeInMinutes: number, groundSpeed: number) {
+    return timeInMinutes * groundSpeed / 60;
+  }
+
   driftAngle(trueCourse: number, trueAirspeed: number, windVector: Vector) {
     const windAngleRadians = (trueCourse - windVector.direction + 180) * (Math.PI / 180);
     const windCorrectionAngleInRadians = Math.asin(windVector.speed * Math.sin(windAngleRadians) / trueAirspeed);
@@ -58,11 +62,40 @@ export class TripComputerService {
   }
 
   updateTime(leg: TripSegment, distance: number) {
-    leg.time = Math.round(this.timeInMinutes(distance, leg.groundSpeed));
+    if (!leg.parent) {
+      let childDistance = 0;
+      for (const child of leg.children) {
+        childDistance += this.distance(child.time, child.groundSpeed);
+      }
+      leg.time = Math.round(this.timeInMinutes(distance - childDistance, leg.groundSpeed) );
+    } else {
+      this.updateTime(leg.parent, distance);
+    }
     this.updateFuel(leg);
   }
 
   updateFuel(leg: TripSegment) {
     leg.fuel = this.fuelConsumed(leg.fuelConsumptionRate, leg.time);
+  }
+
+  splitTripSegmentOnTimeLimit(leg: TripSegment, distance: number) {
+    if (leg.time === 0 && leg.parent) {
+      for (let i = 0; i < leg.parent.children.length; i++) {
+        if (leg.parent.children[i] === leg) {
+          leg.parent.children.splice(i, 1);
+        }
+      }
+    } else {
+      const childLeg = new TripSegment();
+      leg.children.push(childLeg);
+      childLeg.parent = leg;
+      // TODO - does the child inherit parent's params on split? e.g. TAS, wind, etc.?
+      const childLegDistance = this.distance(leg.time, leg.groundSpeed);
+      const parentLegDistance = distance - childLegDistance;
+      childLeg.time = leg.time;
+      leg.time = this.timeInMinutes(parentLegDistance, leg.groundSpeed);
+      this.updateFuel(leg);
+      this.updateFuel(childLeg);
+    }
   }
 }

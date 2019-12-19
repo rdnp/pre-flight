@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { TripComputerService } from './trip-computer.service';
+import { TripSegment } from 'src/data.model';
 
 describe('TripComputerService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
@@ -30,6 +31,13 @@ describe('TripComputerService', () => {
     expect(service.timeInMinutes(0, 1)).toBe(0);
     expect(service.timeInMinutes(10, 120)).toBe(5);
     expect(service.timeInMinutes(140, 140)).toBe(60);
+  });
+
+  it('should compute distance out of time and ground speed', () => {
+    const service: TripComputerService = TestBed.get(TripComputerService);
+    expect(service.distance(0, 1)).toBe(0);
+    expect(service.distance(5, 120)).toBe(10);
+    expect(service.distance(60, 140)).toBe(140);
   });
 
   it('should compute wind correction angle out of true course, true airspeed and wind vector', () => {
@@ -62,21 +70,26 @@ describe('TripComputerService', () => {
     expect(Math.round(service.magneticHeading(90, 120, { direction: 0, speed: 30 }, -4))).toBe(72);
   });
 
-  const defaultTestTripSegment = {
-    variation: 2,
-    fuelConsumptionRate: 10,
-    windDirection: 350,
-    windSpeed: 10,
-    trueAirspeed: 120,
-    altitude: 3000,
-    magneticCourse: 0,
-    magneticHeading: 0,
-    groundSpeed: 0,
-    time: 0,
-    fuel: 0
-  };
+  function createDefaultTestTripSement(): TripSegment {
+    return {
+      variation: 2,
+      fuelConsumptionRate: 10,
+      windDirection: 350,
+      windSpeed: 10,
+      trueAirspeed: 120,
+      altitude: 3000,
+      magneticCourse: 0,
+      magneticHeading: 0,
+      groundSpeed: 0,
+      time: 0,
+      fuel: 0,
+      children: [],
+      parent: undefined
+    };
+  }
 
   it('should update all derived values for a trip segment on magnetic course update', () => {
+    const defaultTestTripSegment = createDefaultTestTripSement();
     const service: TripComputerService = TestBed.get(TripComputerService);
     defaultTestTripSegment.magneticCourse = 320;
     defaultTestTripSegment.variation = 2;
@@ -85,5 +98,51 @@ describe('TripComputerService', () => {
     expect(Math.round(defaultTestTripSegment.groundSpeed)).toBe(111);
     expect(Math.round(defaultTestTripSegment.time)).toBe(5);
     expect(defaultTestTripSegment.fuel).toBe(0.8333333333333334);
+  });
+
+  it('should split a trip segment into two if time limit is given for a trip segment', () => {
+    const defaultTestTripSegment = createDefaultTestTripSement();
+    const service: TripComputerService = TestBed.get(TripComputerService);
+    const distance = 10;
+    defaultTestTripSegment.groundSpeed = 120;
+    defaultTestTripSegment.time = 2; // @ speed 120, overall time to cover 10NM is ~5 mins, limiting to 2
+    service.splitTripSegmentOnTimeLimit(defaultTestTripSegment, distance);
+    expect(defaultTestTripSegment.children.length).toBe(1);
+    expect(defaultTestTripSegment.children[0].parent).toBe(defaultTestTripSegment);
+    expect(Math.round(defaultTestTripSegment.children[0].time)).toBe(2);
+    expect(Math.round(defaultTestTripSegment.time)).toBe(3);
+  });
+
+  it('should remove a child trip segment if its time is set to zero', () => {
+    const defaultTestTripSegment = createDefaultTestTripSement();
+    const service: TripComputerService = TestBed.get(TripComputerService);
+    const distance = 10;
+    defaultTestTripSegment.groundSpeed = 120;
+    defaultTestTripSegment.time = 2;
+    service.splitTripSegmentOnTimeLimit(defaultTestTripSegment, distance);
+
+    defaultTestTripSegment.children[0].time = 0;
+    service.splitTripSegmentOnTimeLimit(defaultTestTripSegment.children[0], distance);
+    expect(defaultTestTripSegment.children.length).toBe(0);
+  });
+
+  it('should update all derived values for a split trip segment keeping the time of the child segments constant', () => {
+    const defaultTestTripSegment = createDefaultTestTripSement();
+    const service: TripComputerService = TestBed.get(TripComputerService);
+    const distance = 10;
+    defaultTestTripSegment.time = 2;
+    service.splitTripSegmentOnTimeLimit(defaultTestTripSegment, distance);
+
+    service.updateMagneticCourse(defaultTestTripSegment, 318, 10);
+    expect(Math.round(defaultTestTripSegment.magneticHeading)).toBe(323);
+    expect(Math.round(defaultTestTripSegment.groundSpeed)).toBe(111);
+    expect(Math.round(defaultTestTripSegment.time)).toBe(3);
+    expect(defaultTestTripSegment.fuel).toBe(0.5);
+
+    service.updateMagneticCourse(defaultTestTripSegment.children[0], 318, 10);
+    expect(Math.round(defaultTestTripSegment.children[0].magneticHeading)).toBe(318);
+    expect(Math.round(defaultTestTripSegment.children[0].groundSpeed)).toBe(1);
+    expect(Math.round(defaultTestTripSegment.children[0].time)).toBe(2);
+    expect(defaultTestTripSegment.children[0].fuel).toBe(0);
   });
 });
