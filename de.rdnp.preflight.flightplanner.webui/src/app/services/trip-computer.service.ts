@@ -48,11 +48,11 @@ export class TripComputerService {
 
   updateMagneticHeading(leg: TripSegment, trueCourse: number, distance: number) {
     leg.magneticHeading =
-      Math.round(this.magneticHeading(trueCourse, leg.trueAirspeed,
-        { direction: leg.windDirection, speed: leg.windSpeed }, leg.variation));
+      this.magneticHeading(trueCourse, leg.trueAirspeed,
+        { direction: leg.windDirection, speed: leg.windSpeed }, leg.variation);
     leg.groundSpeed =
-      Math.round(this.groundSpeed(trueCourse, leg.trueAirspeed,
-        { direction: leg.windDirection, speed: leg.windSpeed }));
+      this.groundSpeed(trueCourse, leg.trueAirspeed,
+        { direction: leg.windDirection, speed: leg.windSpeed });
     this.updateTime(leg, distance);
   }
 
@@ -67,7 +67,7 @@ export class TripComputerService {
       for (const child of leg.children) {
         childDistance += this.distance(child.time, child.groundSpeed);
       }
-      leg.time = Math.round(this.timeInMinutes(distance - childDistance, leg.groundSpeed) );
+      leg.time = this.timeInMinutes(distance - childDistance, leg.groundSpeed);
     } else {
       this.updateTime(leg.parent, distance);
     }
@@ -78,24 +78,46 @@ export class TripComputerService {
     leg.fuel = this.fuelConsumed(leg.fuelConsumptionRate, leg.time);
   }
 
-  splitTripSegmentOnTimeLimit(leg: TripSegment, distance: number) {
-    if (leg.time === 0 && leg.parent) {
+  private createChildTripSegmentWithNewTimeLimit(leg: TripSegment, distance: number) {
+    const childLeg = new TripSegment();
+    childLeg.windDirection = leg.windDirection;
+    childLeg.windSpeed = leg.windSpeed;
+    childLeg.altitude = leg.altitude;
+    childLeg.fuelConsumptionRate = leg.fuelConsumptionRate;
+    childLeg.trueAirspeed = leg.trueAirspeed;
+    childLeg.variation = leg.variation;
+    childLeg.magneticCourse = leg.magneticCourse;
+    const childLegTrueCourse = (childLeg.magneticCourse - childLeg.variation + 360) % 360;
+    this.updateMagneticCourse(childLeg, childLegTrueCourse, distance);
+    leg.children.push(childLeg);
+    childLeg.parent = leg;
+    const childLegDistance = this.distance(leg.time, leg.groundSpeed);
+    const parentLegDistance = distance - childLegDistance;
+    childLeg.time = leg.time;
+    leg.time = this.timeInMinutes(parentLegDistance, leg.groundSpeed);
+    this.updateFuel(leg);
+    this.updateFuel(childLeg);
+  }
+
+  private updateChildTripSegmentWithNewTimeLimit(leg: TripSegment, distance: number) {
+    if (leg.time === 0) {
       for (let i = 0; i < leg.parent.children.length; i++) {
         if (leg.parent.children[i] === leg) {
           leg.parent.children.splice(i, 1);
         }
       }
+    }
+    const parentTrueCourse = (leg.parent.magneticCourse - leg.parent.variation + 360) % 360;
+    this.updateMagneticCourse(leg.parent, parentTrueCourse, distance);
+    const legTrueCourse = (leg.magneticCourse - leg.variation + 360) % 360;
+    this.updateMagneticCourse(leg, legTrueCourse, distance);
+  }
+
+  updateTripSegmentWithNewTimeLimit(leg: TripSegment, distance: number) {
+    if (leg.parent) {
+      this.updateChildTripSegmentWithNewTimeLimit(leg, distance);
     } else {
-      const childLeg = new TripSegment();
-      leg.children.push(childLeg);
-      childLeg.parent = leg;
-      // TODO - does the child inherit parent's params on split? e.g. TAS, wind, etc.?
-      const childLegDistance = this.distance(leg.time, leg.groundSpeed);
-      const parentLegDistance = distance - childLegDistance;
-      childLeg.time = leg.time;
-      leg.time = this.timeInMinutes(parentLegDistance, leg.groundSpeed);
-      this.updateFuel(leg);
-      this.updateFuel(childLeg);
+      this.createChildTripSegmentWithNewTimeLimit(leg, distance);
     }
   }
 }

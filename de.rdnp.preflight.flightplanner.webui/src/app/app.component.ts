@@ -6,5 +6,5 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent  {
-  title = 'de-rdnp-preflight-flightplanner-webui';
+  title = 'Pre-Flight Flight Planner';
 }

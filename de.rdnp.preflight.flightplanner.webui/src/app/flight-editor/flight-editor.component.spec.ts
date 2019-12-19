@@ -257,7 +257,7 @@ describe('FlightEditorComponent', () => {
     expect(component.findLoadedRouteSegment('START', 'DEST2')).toBeFalsy();
   });
 
-  it('should set/assign the proper values for a trip segment update', async () => {
+  it('should set/assign the proper values for a trip segment update to the updated segment', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
     const tripComputerService = fixture.debugElement.injector.get(TripComputerService);
@@ -292,5 +292,56 @@ describe('FlightEditorComponent', () => {
     expect(component.tripSegments.get(0).children.length).toBe(0);
     component.setTime('0', '2');
     expect(component.tripSegments.get(0).children.length).toBe(1);
+  });
+
+  it('should set/assign the proper values for a trip segment update to all selected segments', async () => {
+    // set up test with three tripSegments
+    await fixture.whenStable();
+    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
+    expect(component.tripSegments.size).toBe(1);
+    component.setPointId(0, 'START');
+    component.setPointId(1, 'DEST');
+    component.insertPoint(1);
+    expect(component.tripSegments.size).toBe(2);
+    component.setPointId(2, 'ALTN');
+    component.insertPoint(1);
+    expect(component.tripSegments.size).toBe(3);
+    component.setPointId(2, 'ENR-1');
+    await fixture.whenStable();
+    expect(component.tripSegments.size).toBe(3);
+
+    // select one additional trip segment
+    component.selectedTripSegments.set('2', true);
+
+    // update unselected trip segment
+    component.setVariation('0', '2');
+    component.setFuelConsumptionRate('0', '9');
+    component.setWindVector('0', '250', '10');
+    component.setTrueAirspeed('0', '100');
+    component.setAltitude('0', '3000');
+
+    // check values of both selected and unselected trip segment
+    expect(component.tripSegments.get(0).altitude).toBe(3000);
+    expect(component.tripSegments.get(0).trueAirspeed).toBe(100);
+    expect(component.tripSegments.get(0).windDirection).toBe(250);
+    expect(component.tripSegments.get(0).windSpeed).toBe(10);
+    expect(component.tripSegments.get(0).fuelConsumptionRate).toBe(9);
+    expect(component.tripSegments.get(0).variation).toBe(2);
+
+    expect(component.tripSegments.get(2).altitude).toBe(3000);
+    expect(component.tripSegments.get(2).trueAirspeed).toBe(100);
+    expect(component.tripSegments.get(2).windDirection).toBe(250);
+    expect(component.tripSegments.get(2).windSpeed).toBe(10);
+    expect(component.tripSegments.get(2).fuelConsumptionRate).toBe(9);
+    expect(component.tripSegments.get(2).variation).toBe(2);
+
+    // check non-updated trip-segment has retained its state
+    expect(component.tripSegments.get(1).altitude).toBe(0);
+    expect(component.tripSegments.get(1).trueAirspeed).toBe(1);
+    expect(component.tripSegments.get(1).windDirection).toBe(0);
+    expect(component.tripSegments.get(1).windSpeed).toBe(0);
+    expect(component.tripSegments.get(1).fuelConsumptionRate).toBe(0);
+    expect(component.tripSegments.get(1).variation).toBe(0);
   });
 });

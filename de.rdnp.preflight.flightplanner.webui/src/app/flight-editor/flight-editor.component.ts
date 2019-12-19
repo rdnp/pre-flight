@@ -23,6 +23,9 @@ export class FlightEditorComponent implements OnInit {
   @Input()
   tripSegments: Map<number, TripSegment>;
 
+  @Input()
+  selectedTripSegments: Map<string, boolean>;
+
   private tripManager: TripManager;
 
   constructor(private flightService: FlightService,
@@ -34,6 +37,7 @@ export class FlightEditorComponent implements OnInit {
     private route: ActivatedRoute) {
     this.routeSegments = new Map();
     this.tripSegments = new Map();
+    this.selectedTripSegments = new Map();
   }
 
   ngOnInit() {
@@ -100,6 +104,11 @@ export class FlightEditorComponent implements OnInit {
 
   trackByIndex(index: any) {
     return index;
+  }
+
+  getLegDistance(tripSegmentIndexInput: string) {
+    const leg = this.tripManager.findTripSegment(tripSegmentIndexInput);
+    return this.tripComputeService.distance(leg.time, leg.groundSpeed);
   }
 
   /**
@@ -183,6 +192,11 @@ export class FlightEditorComponent implements OnInit {
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     tripSegment.variation = newVariation;
     this.tripComputeService.updateMagneticCourse(tripSegment, trueCourse, distance);
+    this.selectedTripSegments.forEach((isSelected, indexInput) => {
+      if (isSelected && this.tripManager.findTripSegment(indexInput).variation !== newVariation) {
+        this.setVariation(indexInput, newVariationInput);
+      }
+    });
   }
 
   setFuelConsumptionRate(tripSegmentIndexInput: string, newFuelConsumpationRateInput: string) {
@@ -193,6 +207,12 @@ export class FlightEditorComponent implements OnInit {
     const newFuelConsumpationRate = parseFloat(newFuelConsumpationRateInput);
     tripSegment.fuelConsumptionRate = newFuelConsumpationRate;
     this.tripComputeService.updateFuel(tripSegment);
+    this.selectedTripSegments.forEach((isSelected, indexInput) => {
+      if (isSelected && this.tripManager.findTripSegment(indexInput).fuelConsumptionRate !== newFuelConsumpationRate) {
+        console.log(isSelected);
+        this.setFuelConsumptionRate(indexInput, newFuelConsumpationRateInput);
+      }
+    });
   }
 
   setWindVector(tripSegmentIndexInput: string, newWindDirectionInput: string, newWindSpeedInput: string) {
@@ -207,6 +227,12 @@ export class FlightEditorComponent implements OnInit {
     const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     this.tripComputeService.updateMagneticHeading(tripSegment, trueCourse, distance);
+    this.selectedTripSegments.forEach((isSelected, indexInput) => {
+      if (isSelected  && (this.tripManager.findTripSegment(indexInput).windDirection !== newWindDirection
+          || this.tripManager.findTripSegment(indexInput).windSpeed !== newWindSpeed)) {
+        this.setWindVector(indexInput, newWindDirectionInput, newWindSpeedInput);
+      }
+    });
   }
 
   setTrueAirspeed(tripSegmentIndexInput: string, newTrueAirspeedInput: string) {
@@ -219,6 +245,11 @@ export class FlightEditorComponent implements OnInit {
     const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     this.tripComputeService.updateMagneticHeading(tripSegment, trueCourse, distance);
+    this.selectedTripSegments.forEach((isSelected, indexInput) => {
+      if (isSelected && this.tripManager.findTripSegment(indexInput).trueAirspeed !== newTrueAirspeed) {
+        this.setTrueAirspeed(indexInput, newTrueAirspeedInput);
+      }
+    });
   }
 
   setAltitude(tripSegmentIndexInput: string, newAltitudeInput: string) {
@@ -228,7 +259,12 @@ export class FlightEditorComponent implements OnInit {
     const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
     const newAltitude = parseFloat(newAltitudeInput);
     tripSegment.altitude = newAltitude;
-    // no update needed
+    this.selectedTripSegments.forEach((isSelected, indexInput) => {
+      if (isSelected && this.tripManager.findTripSegment(indexInput).altitude !== newAltitude) {
+        this.setAltitude(indexInput, newAltitudeInput);
+      }
+    });
+    // no computations depend on altitude
   }
 
   setTime(tripSegmentIndexInput: string, newTimeInput: string) {
@@ -239,6 +275,7 @@ export class FlightEditorComponent implements OnInit {
     const newTime = parseFloat(newTimeInput);
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     tripSegment.time = newTime;
-    this.tripComputeService.splitTripSegmentOnTimeLimit(tripSegment, distance);
+    this.tripComputeService.updateTripSegmentWithNewTimeLimit(tripSegment, distance);
+    // not propagating split to selection
   }
 }

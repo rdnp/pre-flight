@@ -25,17 +25,17 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'de-rdnp-preflight-flightplanner-webui'`, () => {
+  it(`should have as title 'Pre-Flight'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('de-rdnp-preflight-flightplanner-webui');
+    expect(app.title).toEqual('Pre-Flight Flight Planner');
   });
 
   it('should render title in a h1 tag', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('h1').textContent).toContain('Welcome to de-rdnp-preflight-flightplanner-webui!');
+    expect(compiled.querySelector('h1').textContent).toContain('Pre-Flight');
   });
 
 });
