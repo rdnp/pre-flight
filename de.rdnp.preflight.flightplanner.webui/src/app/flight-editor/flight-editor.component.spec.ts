@@ -286,7 +286,7 @@ describe('FlightEditorComponent', () => {
     expect(component.tripSegments.get(0).trueAirspeed).toBe(100);
     expect(component.tripSegments.get(0).windDirection).toBe(250);
     expect(component.tripSegments.get(0).windSpeed).toBe(10);
-    expect(component.tripSegments.get(0).fuelConsumptionRate).toBe(9);
+    expect(component.tripSegments.get(0).hourlyFuelConsumptionRate).toBe(9);
     expect(component.tripSegments.get(0).variation).toBe(2);
 
     expect(component.tripSegments.get(0).children.length).toBe(0);
@@ -326,14 +326,14 @@ describe('FlightEditorComponent', () => {
     expect(component.tripSegments.get(0).trueAirspeed).toBe(100);
     expect(component.tripSegments.get(0).windDirection).toBe(250);
     expect(component.tripSegments.get(0).windSpeed).toBe(10);
-    expect(component.tripSegments.get(0).fuelConsumptionRate).toBe(9);
+    expect(component.tripSegments.get(0).hourlyFuelConsumptionRate).toBe(9);
     expect(component.tripSegments.get(0).variation).toBe(2);
 
     expect(component.tripSegments.get(2).altitude).toBe(3000);
     expect(component.tripSegments.get(2).trueAirspeed).toBe(100);
     expect(component.tripSegments.get(2).windDirection).toBe(250);
     expect(component.tripSegments.get(2).windSpeed).toBe(10);
-    expect(component.tripSegments.get(2).fuelConsumptionRate).toBe(9);
+    expect(component.tripSegments.get(2).hourlyFuelConsumptionRate).toBe(9);
     expect(component.tripSegments.get(2).variation).toBe(2);
 
     // check non-updated trip-segment has retained its state
@@ -341,7 +341,39 @@ describe('FlightEditorComponent', () => {
     expect(component.tripSegments.get(1).trueAirspeed).toBe(1);
     expect(component.tripSegments.get(1).windDirection).toBe(0);
     expect(component.tripSegments.get(1).windSpeed).toBe(0);
-    expect(component.tripSegments.get(1).fuelConsumptionRate).toBe(0);
+    expect(component.tripSegments.get(1).hourlyFuelConsumptionRate).toBe(0);
     expect(component.tripSegments.get(1).variation).toBe(0);
+  });
+
+  it('should reject invalid values for a trip segment update', async () => {
+    // set up test with three tripSegments
+    await fixture.whenStable();
+    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
+    spyOn(routeSegmentService, 'findRouteSegment').and.callFake(defaultRouteSegmentObservable);
+
+    // update trip segment
+    component.setVariation('0', '-200');
+    component.setFuelConsumptionRate('0', '0');
+    component.setWindVector('0', '370', '10');
+    component.setWindVector('0', '320', '-1');
+    component.setTrueAirspeed('0', '-1');
+    component.setAltitude('0', 'abc');
+    component.setTime('0', '-1');
+
+    // check trip-segment has retained its state
+    expect(component.tripSegments.get(0).altitude).toBe(0);
+    expect(component.tripSegments.get(0).trueAirspeed).toBe(1);
+    expect(component.tripSegments.get(0).windDirection).toBe(0);
+    expect(component.tripSegments.get(0).windSpeed).toBe(0);
+    expect(component.tripSegments.get(0).hourlyFuelConsumptionRate).toBe(0);
+    expect(component.tripSegments.get(0).variation).toBe(0);
+    expect(component.tripSegments.get(0).timeInMinutes).toBe(0);
+  });
+
+  it('should get the proper distance for a trip segment', async () => {
+    await fixture.whenStable();
+    component.tripSegments.get(0).groundSpeed = 120;
+    component.tripSegments.get(0).timeInMinutes = 5;
+    expect(component.getLegDistance('0')).toBe(10);
   });
 });

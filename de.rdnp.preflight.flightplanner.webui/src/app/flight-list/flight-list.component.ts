@@ -24,7 +24,6 @@ export class FlightListComponent implements OnInit {
     this.flightService.getFlights().subscribe((flightArray: Flight[]) => {
       for (const oneFlight of flightArray) {
         this.internalFlights.push(oneFlight);
-        console.log('Got ' + this.flights.length + ' flights: ' + this.flights);
       }
     });
   }
@@ -35,8 +34,7 @@ export class FlightListComponent implements OnInit {
 
   public deleteFlight(name: string) {
     this.flightService.deleteFlight(name).subscribe(
-      data => {
-        console.log(data);
+      () => {
         this.loadFlights();
       },
       error => {

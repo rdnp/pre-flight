@@ -17,11 +17,11 @@
       </tr>
       <!-- Split off / time-limited trip segments -->
       <tr *ngFor="let childSegment of tripSegments?.get(i)?.children; index as c">
-        <td colspan="4">Timed Leg {{childSegment.time.toFixed(0)}}'' ({{getLegDistance(i + '.' + c).toFixed(1)}} NM)</td>
+        <td colspan="4">Timed Leg {{childSegment.timeInMinutes.toFixed(0)}}'' ({{getLegDistance(i + '.' + c).toFixed(1)}} NM)</td>
         <!-- Route-segment trip input data -->
         <td>VAR<br><input size="3" [value]="childSegment.variation"
             (input)="setVariation(i + '.' + c, $event.target.value)" /></td>
-        <td>FCR(h)<br><input size="3" [value]="childSegment.fuelConsumptionRate"
+        <td>FCR(h)<br><input size="3" [value]="childSegment.hourlyFuelConsumptionRate"
             (input)="setFuelConsumptionRate(i + '.' + c, $event.target.value)" /></td>
         <td nowrap>W / V<br><input size="3" [value]="childSegment.windDirection"
             (input)="setWindVector(i + '.' + c, $event.target.value, tripSegments?.get(i).windSpeed)" />
@@ -35,7 +35,7 @@
         <td>MC<br><input size="3" [value]="childSegment.magneticCourse.toFixed(0)" readonly="true" /></td>
         <td>MH<br><input size="3" [value]="childSegment.magneticHeading.toFixed(0)" readonly="true" /></td>
         <td>GS(kt)<br><input size="3" [value]="childSegment.groundSpeed.toFixed(0)" readonly="true" /></td>
-        <td>t(min)<br><input size="2" [value]="childSegment.time.toFixed(0)"
+        <td>t(min)<br><input size="2" [value]="childSegment.timeInMinutes.toFixed(0)"
             (input)="setTime(i + '.' + c, $event.target.value)" />
         </td>
         <td>F<br><input size="3" [value]="childSegment.fuel.toFixed(1)" readonly="true" /></td>
@@ -57,7 +57,7 @@
         <!-- Route-segment trip input data -->
         <td>VAR<br><input size="3" [value]="tripSegments?.get(i).variation"
             (input)="setVariation(i.toString(), $event.target.value)" /></td>
-        <td>FCR(h)<br><input size="3" [value]="tripSegments?.get(i).fuelConsumptionRate"
+        <td>FCR(h)<br><input size="3" [value]="tripSegments?.get(i).hourlyFuelConsumptionRate"
             (input)="setFuelConsumptionRate(i.toString(), $event.target.value)" /></td>
         <td nowrap>W / V<br><input size="3" [value]="tripSegments?.get(i).windDirection"
             (input)="setWindVector(i.toString(), $event.target.value, tripSegments?.get(i).windSpeed)" />
@@ -71,7 +71,7 @@
         <td>MC<br><input size="3" [value]="tripSegments?.get(i).magneticCourse.toFixed(0)" readonly="true" /></td>
         <td>MH<br><input size="3" [value]="tripSegments?.get(i).magneticHeading.toFixed(0)" readonly="true" /></td>
         <td>GS(kt)<br><input size="3" [value]="tripSegments?.get(i).groundSpeed.toFixed(0)" readonly="true" /></td>
-        <td>t(min)<br><input size="2" [value]="tripSegments?.get(i).time.toFixed(0)"
+        <td>t(min)<br><input size="2" [value]="tripSegments?.get(i).timeInMinutes.toFixed(0)"
             (input)="setTime(i.toString(), $event.target.value)" />
         </td>
         <td>F<br><input size="3" [value]="tripSegments?.get(i).fuel.toFixed(1)" readonly="true" /></td>

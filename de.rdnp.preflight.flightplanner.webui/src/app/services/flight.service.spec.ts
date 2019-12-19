@@ -33,7 +33,6 @@ describe('FlightService', () => {
 
   it('retrieves all the flights from integrationtest server', async(() => {
     service.getFlights().subscribe(flights => {
-      console.log(flights);
       expect(flights.length).toBeGreaterThan(0);
       expect(flights[0].origin).toEqual('EDTQ');
       expect(flights[0].destination).toEqual('EDTQ');

@@ -5,7 +5,7 @@ export interface Vector {
 
 export class TripSegment {
     variation: number;
-    fuelConsumptionRate: number;
+    hourlyFuelConsumptionRate: number;
     windDirection: number;
     windSpeed: number;
     trueAirspeed: number;
@@ -13,14 +13,14 @@ export class TripSegment {
     magneticCourse: number;
     magneticHeading: number;
     groundSpeed: number;
-    time: number;
+    timeInMinutes: number;
     fuel: number;
     children: TripSegment[];
     parent: TripSegment;
 
     constructor() {
         this.variation = 0;
-        this.fuelConsumptionRate = 0;
+        this.hourlyFuelConsumptionRate = 0;
         this.windDirection = 0;
         this.windSpeed = 0;
         this.trueAirspeed = 1;
@@ -28,10 +28,10 @@ export class TripSegment {
         this.magneticCourse = 0;
         this.magneticHeading = 0;
         this.groundSpeed = 0;
-        this.time = 0;
+        this.timeInMinutes = 0;
         this.fuel = 0;
         this.children = [];
-        this.parent = undefined
+        this.parent = undefined;
     }
 }
 

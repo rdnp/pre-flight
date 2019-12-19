@@ -6,6 +6,7 @@ import { switchMap } from 'rxjs/operators';
 import { RouteSegmentService } from '../services/route-segment.service';
 import { TripComputerService } from '../services/trip-computer.service';
 import { TripManager } from './trip-manager';
+import { InputValidator } from './input-validator';
 
 @Component({
   selector: 'app-flight-editor',
@@ -28,6 +29,8 @@ export class FlightEditorComponent implements OnInit {
 
   private tripManager: TripManager;
 
+  private inputValidator: InputValidator;
+
   constructor(private flightService: FlightService,
     // tslint:disable-next-line: align
     private routeSegmentService: RouteSegmentService,
@@ -38,6 +41,7 @@ export class FlightEditorComponent implements OnInit {
     this.routeSegments = new Map();
     this.tripSegments = new Map();
     this.selectedTripSegments = new Map();
+    this.inputValidator = new InputValidator();
   }
 
   ngOnInit() {
@@ -108,7 +112,7 @@ export class FlightEditorComponent implements OnInit {
 
   getLegDistance(tripSegmentIndexInput: string) {
     const leg = this.tripManager.findTripSegment(tripSegmentIndexInput);
-    return this.tripComputeService.distance(leg.time, leg.groundSpeed);
+    return this.tripComputeService.distance(leg.timeInMinutes, leg.groundSpeed);
   }
 
   /**
@@ -124,13 +128,8 @@ export class FlightEditorComponent implements OnInit {
    * Will not do anything if the route segment does not exist or if the course is invalid (i.e. not between 0 and 360).
    */
   setTrueCourse(fromPointId: string, toPointId: string, trueCourseInput: string) {
-    const trueCourse = parseFloat(trueCourseInput);
-    if (trueCourse < 0 || trueCourse > 360 || !this.findLoadedRouteSegment(fromPointId, toPointId)) {
-      alert('You entered a true course that is outside the reasonable range.\n' +
-        'Values allowed are between 0 and 360.\n' +
-        'Course values are given in degrees.\n' +
-        'Please correct the value, as invalid values will not be saved.\n' +
-        'Refreshing this page will restore saved values.');
+    const trueCourse = this.inputValidator.validateCourse(trueCourseInput, 'true course');
+    if (isNaN(trueCourse) || (!this.findLoadedRouteSegment(fromPointId, toPointId))) {
       return;
     }
     const routeSegment = this.findLoadedRouteSegment(fromPointId, toPointId);
@@ -146,13 +145,8 @@ export class FlightEditorComponent implements OnInit {
    * Will not do anything if the route segment does not exist or if the given altitude is invalid (i.e. not between -2000 and 100000).
    */
   setMinimumSafeAltitude(fromPointId: string, toPointId: string, minimumSafeAltitudeInput: string) {
-    const minimumSafeAltitude = parseFloat(minimumSafeAltitudeInput);
-    if ((minimumSafeAltitude < -2000) || (minimumSafeAltitude > 100000) || (!this.findLoadedRouteSegment(fromPointId, toPointId))) {
-      alert('You entered a minimum safe altitude that is outside reasonable range.\n' +
-        'Values allowed are between -2000 and 100000.\n' +
-        'Altitude values are given in feet above MSL.\n' +
-        'Please correct the value, as invalid values will not be saved.\n' +
-        'Refreshing this page will restore saved values..');
+    const minimumSafeAltitude = this.inputValidator.validateAltitude(minimumSafeAltitudeInput, 'minimum safe altitude');
+    if (isNaN(minimumSafeAltitude) || !this.findLoadedRouteSegment(fromPointId, toPointId)) {
       return;
     }
     this.findLoadedRouteSegment(fromPointId, toPointId).minimumSafeAltitude = minimumSafeAltitude;
@@ -163,13 +157,8 @@ export class FlightEditorComponent implements OnInit {
    * Will not do anything if the route segment does not exist or if the given altitude is invalid (i.e. not between 0 and 23000).
    */
   setDistance(fromPointId: string, toPointId: string, distanceInput: string) {
-    const distance = parseFloat(distanceInput);
-    if (distance < 0 || distance > 23000 || !this.findLoadedRouteSegment(fromPointId, toPointId)) {
-      alert('You entered a distance is outside reasonable range.' +
-        'Values allowed are between 0 and 23000.\n' +
-        'Distance values are given in NM.\n' +
-        'Please correct the value, as invalid values will not be saved.\n' +
-        'Refreshing this page will restore saved values.');
+    const distance = this.inputValidator.validateDistance(distanceInput, 'distance between points');
+    if (isNaN(distance) || !this.findLoadedRouteSegment(fromPointId, toPointId)) {
       return;
     }
     const routeSegment = this.findLoadedRouteSegment(fromPointId, toPointId);
@@ -183,11 +172,11 @@ export class FlightEditorComponent implements OnInit {
   }
 
   setVariation(tripSegmentIndexInput: string, newVariationInput: string) {
-    //
-    // TODO check variation must be between -180 .. 180
-    //
+    const newVariation = this.inputValidator.validateRelativeBearing(newVariationInput, 'magnetic variation');
+    if (isNaN(newVariation)) {
+      return;
+    }
     const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
-    const newVariation = parseFloat(newVariationInput);
     const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     tripSegment.variation = newVariation;
@@ -200,28 +189,27 @@ export class FlightEditorComponent implements OnInit {
   }
 
   setFuelConsumptionRate(tripSegmentIndexInput: string, newFuelConsumpationRateInput: string) {
-    //
-    // TODO check FCR must be greater zero
-    //
+    const newFuelConsumpationRate = this.inputValidator.validatePositiveNumber(newFuelConsumpationRateInput, 'fuel consumption rate');
+    if (isNaN(newFuelConsumpationRate)) {
+      return;
+    }
     const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
-    const newFuelConsumpationRate = parseFloat(newFuelConsumpationRateInput);
-    tripSegment.fuelConsumptionRate = newFuelConsumpationRate;
+    tripSegment.hourlyFuelConsumptionRate = newFuelConsumpationRate;
     this.tripComputeService.updateFuel(tripSegment);
     this.selectedTripSegments.forEach((isSelected, indexInput) => {
-      if (isSelected && this.tripManager.findTripSegment(indexInput).fuelConsumptionRate !== newFuelConsumpationRate) {
-        console.log(isSelected);
+      if (isSelected && this.tripManager.findTripSegment(indexInput).hourlyFuelConsumptionRate !== newFuelConsumpationRate) {
         this.setFuelConsumptionRate(indexInput, newFuelConsumpationRateInput);
       }
     });
   }
 
   setWindVector(tripSegmentIndexInput: string, newWindDirectionInput: string, newWindSpeedInput: string) {
-    //
-    // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
-    //
+    const newWindDirection = this.inputValidator.validateCourse(newWindDirectionInput, 'wind direction');
+    const newWindSpeed = this.inputValidator.validateSpeed(newWindSpeedInput, 'wind speed');
+    if (isNaN(newWindDirection) || isNaN(newWindSpeed)) {
+      return;
+    }
     const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
-    const newWindDirection = parseFloat(newWindDirectionInput);
-    const newWindSpeed = parseFloat(newWindSpeedInput);
     tripSegment.windSpeed = newWindSpeed;
     tripSegment.windDirection = newWindDirection;
     const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
@@ -236,11 +224,11 @@ export class FlightEditorComponent implements OnInit {
   }
 
   setTrueAirspeed(tripSegmentIndexInput: string, newTrueAirspeedInput: string) {
-    //
-    // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
-    //
+    const newTrueAirspeed = this.inputValidator.validateSpeed(newTrueAirspeedInput, 'true airspeed');
+    if (isNaN(newTrueAirspeed)) {
+      return;
+    }
     const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
-    const newTrueAirspeed = parseFloat(newTrueAirspeedInput);
     tripSegment.trueAirspeed = newTrueAirspeed;
     const trueCourse = this.tripManager.findTripSegmentRouting(tripSegment).trueCourse;
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
@@ -253,11 +241,11 @@ export class FlightEditorComponent implements OnInit {
   }
 
   setAltitude(tripSegmentIndexInput: string, newAltitudeInput: string) {
-    //
-    // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
-    //
+    const newAltitude = this.inputValidator.validateAltitude(newAltitudeInput, 'altitude');
+    if (isNaN(newAltitude)) {
+      return;
+    }
     const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
-    const newAltitude = parseFloat(newAltitudeInput);
     tripSegment.altitude = newAltitude;
     this.selectedTripSegments.forEach((isSelected, indexInput) => {
       if (isSelected && this.tripManager.findTripSegment(indexInput).altitude !== newAltitude) {
@@ -268,13 +256,13 @@ export class FlightEditorComponent implements OnInit {
   }
 
   setTime(tripSegmentIndexInput: string, newTimeInput: string) {
-    //
-    // TODO check wind direction must be between 0 .. 360, wind speed must be greater or equal to zero
-    //
+    const newTime = this.inputValidator.validateTime(newTimeInput, 'time');
+    if (isNaN(newTime)) {
+      return;
+    }
     const tripSegment = this.tripManager.findTripSegment(tripSegmentIndexInput);
-    const newTime = parseFloat(newTimeInput);
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
-    tripSegment.time = newTime;
+    tripSegment.timeInMinutes = newTime;
     this.tripComputeService.updateTripSegmentWithNewTimeLimit(tripSegment, distance);
     // not propagating split to selection
   }

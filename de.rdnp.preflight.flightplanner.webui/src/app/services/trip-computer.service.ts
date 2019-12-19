@@ -65,9 +65,9 @@ export class TripComputerService {
     if (!leg.parent) {
       let childDistance = 0;
       for (const child of leg.children) {
-        childDistance += this.distance(child.time, child.groundSpeed);
+        childDistance += this.distance(child.timeInMinutes, child.groundSpeed);
       }
-      leg.time = this.timeInMinutes(distance - childDistance, leg.groundSpeed);
+      leg.timeInMinutes = this.timeInMinutes(distance - childDistance, leg.groundSpeed);
     } else {
       this.updateTime(leg.parent, distance);
     }
@@ -75,7 +75,7 @@ export class TripComputerService {
   }
 
   updateFuel(leg: TripSegment) {
-    leg.fuel = this.fuelConsumed(leg.fuelConsumptionRate, leg.time);
+    leg.fuel = this.fuelConsumed(leg.hourlyFuelConsumptionRate, leg.timeInMinutes);
   }
 
   private createChildTripSegmentWithNewTimeLimit(leg: TripSegment, distance: number) {
@@ -83,7 +83,7 @@ export class TripComputerService {
     childLeg.windDirection = leg.windDirection;
     childLeg.windSpeed = leg.windSpeed;
     childLeg.altitude = leg.altitude;
-    childLeg.fuelConsumptionRate = leg.fuelConsumptionRate;
+    childLeg.hourlyFuelConsumptionRate = leg.hourlyFuelConsumptionRate;
     childLeg.trueAirspeed = leg.trueAirspeed;
     childLeg.variation = leg.variation;
     childLeg.magneticCourse = leg.magneticCourse;
@@ -91,16 +91,16 @@ export class TripComputerService {
     this.updateMagneticCourse(childLeg, childLegTrueCourse, distance);
     leg.children.push(childLeg);
     childLeg.parent = leg;
-    const childLegDistance = this.distance(leg.time, leg.groundSpeed);
+    const childLegDistance = this.distance(leg.timeInMinutes, leg.groundSpeed);
     const parentLegDistance = distance - childLegDistance;
-    childLeg.time = leg.time;
-    leg.time = this.timeInMinutes(parentLegDistance, leg.groundSpeed);
+    childLeg.timeInMinutes = leg.timeInMinutes;
+    leg.timeInMinutes = this.timeInMinutes(parentLegDistance, leg.groundSpeed);
     this.updateFuel(leg);
     this.updateFuel(childLeg);
   }
 
   private updateChildTripSegmentWithNewTimeLimit(leg: TripSegment, distance: number) {
-    if (leg.time === 0) {
+    if (leg.timeInMinutes === 0) {
       for (let i = 0; i < leg.parent.children.length; i++) {
         if (leg.parent.children[i] === leg) {
           leg.parent.children.splice(i, 1);

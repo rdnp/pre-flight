@@ -22,7 +22,6 @@ export class FlightService {
 
   public getFlightByName(name: string) {
     const queryUrl = 'http://localhost:8080/flights/search/findByName?name=' + name;
-    console.log(queryUrl);
     return this.http.get(queryUrl).pipe(
       // unwrap the flight
       map((response: FlightRepositoryResponse) => {
