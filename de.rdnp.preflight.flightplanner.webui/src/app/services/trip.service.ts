@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TripRepositoryResponse, Trip } from 'src/data.model';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class TripService {
   constructor(private http: HttpClient) { }
 
   findAllTripsForFlight(flightId: string) {
-    const queryUrl = 'http://localhost:8080/trips/search/findByFlightId?id=' + parseFloat(flightId).toFixed(0);
+    const queryUrl = environment.repositoryUrl + '/trips/search/findByFlightId?id=' + parseFloat(flightId).toFixed(0);
     return this.http.get(queryUrl).pipe(
       map((response: TripRepositoryResponse) => {
         return response._embedded.trips;
@@ -20,12 +21,12 @@ export class TripService {
   }
 
   deleteAllTripsForFlight(flightId: string) {
-    const queryUrl = 'http://localhost:8080/trips/search/deleteByFlightId?id=' + flightId;
+    const queryUrl = environment.repositoryUrl + '/trips/search/deleteByFlightId?id=' + flightId;
     return this.http.get(queryUrl);
   }
 
   createTrip(trip: Trip) {
-    return this.http.put('http://localhost:8080/trips/9223372036854775807', trip);
+    return this.http.put(environment.repositoryUrl + '/trips/9223372036854775807', trip);
   }
 
   updateTrip(trip: Trip) {

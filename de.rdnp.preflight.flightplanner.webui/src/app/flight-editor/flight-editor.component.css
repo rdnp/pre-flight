@@ -12,3 +12,11 @@ td {
     border-color: #000;
     border-style: solid;
 }
+
+label {
+    white-space:nowrap;
+}
+
+.wrappable {
+    white-space:normal;
+}

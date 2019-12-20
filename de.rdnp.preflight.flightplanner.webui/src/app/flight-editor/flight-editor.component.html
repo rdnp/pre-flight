@@ -1,21 +1,25 @@
-<h2 align="left">Flight Details</h2>
+<h2>Flight Details</h2>
 <div>
-  <p *ngIf="flight" align="left">Origin: <input [value]="flight.origin" (input)="flight.origin = $event.target.value"
-      size="4" />
-    Destination: <input [value]="flight.destination" (input)="flight.destination = $event.target.value" size="4" />
-    Alternate:
-    <input [value]="flight.alternate" (input)="flight.alternate = $event.target.value" size="4" /> </p>
+  <p *ngIf="flight" align="center">
+    <label><span> Origin:</span><input [value]="flight.origin" (input)="flight.origin = $event.target.value" size="5" /></label>
+    <label><span>
+      Destination:</span><input [value]="flight.destination" (input)="flight.destination = $event.target.value"
+        size="5" /></label>
+    <label><span> Alternate:</span>
+      <input [value]="flight.alternate" (input)="flight.alternate = $event.target.value" size="5" /></label>
+  </p>
 </div>
-<h2 align="left">Trip Details</h2>
+<h2>Trip Details</h2>
 <div>
-  <p *ngIf="flight" align="left">
+  <p *ngIf="flight" align="center">
     <select name="trips" id="trip-select" (input)="selectTrip($event.target.selectedIndex)">
       <option *ngFor="let trip of tripList; index as i">
         <ng-container *ngIf="i===0">
           Create New Trip
         </ng-container>
         <ng-container *ngIf="i!==0">
-          #{{i}}: {{tripList[i].dateOfFlight}}, {{tripList[i].estimatedOffBlockTime}} ({{tripList[i].aircraftRegistration}})
+          #{{i}}: {{tripList[i].dateOfFlight}}, {{tripList[i].estimatedOffBlockTime}}
+          ({{tripList[i].aircraftRegistration}})
           <ng-container *ngIf="trip.deleted">
             (to be deleted)
           </ng-container>
@@ -28,19 +32,19 @@
       <button (click)="selectedTrip.deleted = false">Undo</button>
     </ng-container>
   </p>
-  <p *ngIf="selectedTrip" align="left">
-    Date of Flight: <input [value]="selectedTrip.dateOfFlight" (input)="selectedTrip.dateOfFlight = $event.target.value"
-      type="date" />
-    EOBT: <input [value]="selectedTrip.estimatedOffBlockTime"
-      (input)="selectedTrip.estimatedOffBlockTime = $event.target.value" type="time" />
-    Aircraft Registration: <input [value]="selectedTrip.aircraftRegistration"
-      (input)="selectedTrip.aircraftRegistration = $event.target.value" size="5" />
-    Aircraft Type: <input [value]="selectedTrip.aircraftType" (input)="selectedTrip.aircraftType = $event.target.value"
-      size="3" />
+  <p *ngIf="selectedTrip" align="center">
+    <label>Date of Flight: <input [value]="selectedTrip.dateOfFlight" (input)="selectedTrip.dateOfFlight = $event.target.value"
+      type="date" /></label>
+    <label><span> EOBT:</span><input [value]="selectedTrip.estimatedOffBlockTime"
+      (input)="selectedTrip.estimatedOffBlockTime = $event.target.value" type="time" /></label>
+    <label><span> A/C Reg.:</span><input [value]="selectedTrip.aircraftRegistration"
+      (input)="selectedTrip.aircraftRegistration = $event.target.value" size="6" /></label>
+    <label><span> A/C Type:</span><input [value]="selectedTrip.aircraftType" (input)="selectedTrip.aircraftType = $event.target.value"
+      size="4" /></label>
   </p>
 </div>
-<h2 align="left">Flight Route</h2>
-<div>
+<h2>Flight Route</h2>
+<div align="center">
   <table *ngIf="flight?.pointIds">
     <ng-container *ngFor="let routePoint of flight.pointIds; index as i; trackBy:trackByIndex">
       <tr>
@@ -118,8 +122,8 @@
     </ng-container>
   </table>
 </div>
-<h2 align="left">Save Flight</h2>
-<div align="left">
+<h2>Save Flight</h2>
+<div>
   Name: <input *ngIf="flight" [value]="flight.name" (input)="flight.name = $event.target.value" size="40" />
   <button (click)="save()">Save</button> <button [routerLink]="['/flightplanner/list']">Return</button>
 </div>
