@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Flight, RouteSegment, TripSegment } from 'src/data.model';
+import { Flight, RouteSegment, TripSegment, Trip } from 'src/data.model';
 import { FlightService } from '../services/flight.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
@@ -7,6 +7,8 @@ import { RouteSegmentService } from '../services/route-segment.service';
 import { TripComputerService } from '../services/trip-computer.service';
 import { TripManager } from './trip-manager';
 import { InputValidator } from './input-validator';
+import { TripService } from '../services/trip.service';
+import { Observable, of, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-flight-editor',
@@ -22,7 +24,10 @@ export class FlightEditorComponent implements OnInit {
   routeSegments: Map<string, RouteSegment>;
 
   @Input()
-  tripSegments: Map<number, TripSegment>;
+  tripList: Trip[];
+
+  @Input()
+  selectedTrip: Trip;
 
   @Input()
   selectedTripSegments: Map<string, boolean>;
@@ -31,15 +36,13 @@ export class FlightEditorComponent implements OnInit {
 
   private inputValidator: InputValidator;
 
-  constructor(private flightService: FlightService,
-    // tslint:disable-next-line: align
+  constructor(
+    private flightService: FlightService,
     private routeSegmentService: RouteSegmentService,
-    // tslint:disable-next-line: align
     private tripComputeService: TripComputerService,
-    // tslint:disable-next-line: align
+    private tripService: TripService,
     private route: ActivatedRoute) {
     this.routeSegments = new Map();
-    this.tripSegments = new Map();
     this.selectedTripSegments = new Map();
     this.inputValidator = new InputValidator();
   }
@@ -51,9 +54,26 @@ export class FlightEditorComponent implements OnInit {
         this.flightService.getFlightByName(params.get('name')))
     ).subscribe((result: Flight) => {
       this.flight = result;
+      this.loadTripList();
       this.loadMissingRouteSegments();
-      this.tripManager = new TripManager(this.flight, this.routeSegments, this.tripSegments);
+      this.selectTrip('0');
     });
+  }
+
+  loadTripList() {
+    this.tripList = [];
+    this.tripList.push(new Trip(undefined, '', '', '', '', [], undefined));
+    if (this.flight._links) {
+      const flightId = this.flight._links.flight.href.substr(this.flight._links.flight.href.lastIndexOf('/') + 1);
+      this.tripService.findAllTripsForFlight(flightId).subscribe((loadedTrips) => {
+        this.tripList = this.tripList.concat(loadedTrips);
+      });
+    }
+  }
+
+  selectTrip(selection: string) {
+    this.selectedTrip = this.tripList[parseFloat(selection)];
+    this.tripManager = new TripManager(this.flight, this.routeSegments, this.selectedTrip);
   }
 
   findLoadedRouteSegment(fromPointId: string, toPointId: string) {
@@ -67,6 +87,21 @@ export class FlightEditorComponent implements OnInit {
       this.routeSegmentService.saveRouteSegment(
         this.findLoadedRouteSegment(this.flight.pointIds[i], this.flight.pointIds[i + 1])).subscribe();
     }
+    const replies: Observable<object>[] = [];
+    for (const trip of this.tripList) {
+      if (trip.deleted) {
+        replies.push(this.tripService.deleteTrip(trip));
+      } else if (trip.flightId) {
+        replies.push(this.tripService.updateTrip(trip));
+      } else if (!this.tripService.isEmptyTrip(trip)) {
+        trip.flightId = this.flight._links.flight.href.substr(this.flight._links.flight.href.lastIndexOf('/') + 1);
+        replies.push(this.tripService.createTrip(trip));
+      }
+    }
+    forkJoin(replies).subscribe(() => {
+      this.loadTripList();
+      this.selectTrip('0');
+    });
   }
 
   insertPoint(index: number) {
@@ -216,8 +251,8 @@ export class FlightEditorComponent implements OnInit {
     const distance = this.tripManager.findTripSegmentRouting(tripSegment).distance;
     this.tripComputeService.updateMagneticHeading(tripSegment, trueCourse, distance);
     this.selectedTripSegments.forEach((isSelected, indexInput) => {
-      if (isSelected  && (this.tripManager.findTripSegment(indexInput).windDirection !== newWindDirection
-          || this.tripManager.findTripSegment(indexInput).windSpeed !== newWindSpeed)) {
+      if (isSelected && (this.tripManager.findTripSegment(indexInput).windDirection !== newWindDirection
+        || this.tripManager.findTripSegment(indexInput).windSpeed !== newWindSpeed)) {
         this.setWindVector(indexInput, newWindDirectionInput, newWindSpeedInput);
       }
     });

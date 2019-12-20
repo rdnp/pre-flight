@@ -3,6 +3,49 @@ export interface Vector {
     speed: number;
 }
 
+export class Trip {
+    flightId: string;
+    dateOfFlight: string;
+    estimatedOffBlockTime: string;
+    aircraftRegistration: string;
+    aircraftType: string;
+    segments: TripSegment[];
+    // tslint:disable-next-line: variable-name
+    _links: TripLinks;
+    deleted: boolean;
+
+    constructor(
+        flightId: string,
+        dateOfFlight: string,
+        estimatedOffBlockTime: string,
+        aircraftRegistration: string,
+        aircraftType: string,
+        segments: TripSegment[],
+        // tslint:disable-next-line: variable-name
+        _links: TripLinks) {
+        this.flightId = flightId;
+        this.segments = segments;
+        this.dateOfFlight = dateOfFlight;
+        this.estimatedOffBlockTime = estimatedOffBlockTime;
+        this.aircraftRegistration = aircraftRegistration;
+        this.aircraftType = aircraftType;
+        this._links = _links;
+    }
+}
+
+export interface TripList {
+    trips: Trip[];
+}
+
+export interface TripRepositoryResponse {
+    _embedded: TripList;
+}
+
+export interface TripLinks {
+    self: Link;
+    trip: Link;
+}
+
 export class TripSegment {
     variation: number;
     hourlyFuelConsumptionRate: number;
@@ -65,11 +108,12 @@ export class Flight {
     alternate: string;
     aircraftType: string;
     pointIds: string[];
+    id: string;
 
     // tslint:disable-next-line: variable-name
     _links: FlightLinks; // variable from Spring repository
 
-    constructor(name: string, origin: string, destination: string, alternate: string, aircraftType: string, pointIds: string[],
+    constructor(name: string, origin: string, destination: string, alternate: string, aircraftType: string, pointIds: string[], id: string,
         // tslint:disable-next-line: align variable-name
         _links: FlightLinks) {
         this.name = name;
@@ -78,6 +122,7 @@ export class Flight {
         this.aircraftType = aircraftType;
         this.pointIds = pointIds;
         this.alternate = alternate;
+        this.id = id;
     }
 }
 

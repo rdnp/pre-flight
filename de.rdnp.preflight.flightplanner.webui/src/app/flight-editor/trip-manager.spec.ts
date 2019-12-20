@@ -1,5 +1,5 @@
 import { TripManager } from './trip-manager';
-import { Flight, RouteSegment, TripSegment } from 'src/data.model';
+import { Flight, RouteSegment, TripSegment, Trip } from 'src/data.model';
 
 describe('TripManager', () => {
 
@@ -24,13 +24,13 @@ describe('TripManager', () => {
     return result;
   }
 
-  function createDefaultTrip(): Map<number, TripSegment> {
-    const result = new Map();
+  function createDefaultTrip(): Trip {
+    const result = new Trip(undefined, '', '', '', '', [], undefined);
     return result;
   }
 
   let defaultRoute: Map<string, RouteSegment>;
-  let defaultTrip: Map<number, TripSegment>;
+  let defaultTrip: Trip;
   let manager: TripManager;
 
   beforeEach(() => {
@@ -40,18 +40,18 @@ describe('TripManager', () => {
   });
 
   it('should get the right route segment for a trip segment', async () => {
-    expect(manager.findTripSegmentRouting(defaultTrip.get(0)).sourcePointId).toBe('EDTQ');
-    expect(manager.findTripSegmentRouting(defaultTrip.get(0)).targetPointId).toBe('EDDB');
+    expect(manager.findTripSegmentRouting(defaultTrip.segments[0]).sourcePointId).toBe('EDTQ');
+    expect(manager.findTripSegmentRouting(defaultTrip.segments[0]).targetPointId).toBe('EDDB');
 
     // cross-check: non existing segment
-    expect(manager.findTripSegmentRouting(defaultTrip.get(100)).sourcePointId).toBe('');
-    expect(manager.findTripSegmentRouting(defaultTrip.get(100)).targetPointId).toBe('');
+    expect(manager.findTripSegmentRouting(defaultTrip.segments[100]).sourcePointId).toBe('');
+    expect(manager.findTripSegmentRouting(defaultTrip.segments[100]).targetPointId).toBe('');
   });
 
   it('should get the parent route segment for a child trip segment', async () => {
     const child = new TripSegment();
-    defaultTrip.get(0).children.push(child);
-    child.parent = defaultTrip.get(0);
+    defaultTrip.segments[0].children.push(child);
+    child.parent = defaultTrip.segments[0];
     expect(manager.findTripSegmentRouting(child).sourcePointId).toBe('EDTQ');
     expect(manager.findTripSegmentRouting(child).targetPointId).toBe('EDDB');
   });
@@ -73,16 +73,16 @@ describe('TripManager', () => {
 
     // quick-check
     expect(manager.pointIds.length).toBe(3);
-    expect(manager.tripSegments.size).toBe(2);
+    expect(manager.trip.segments.length).toBe(2);
     // investigate points
     expect(manager.pointIds[0]).toBe('EDTQ');
     expect(manager.pointIds[1]).toBe('ENR-1');
     expect(manager.pointIds[2]).toBe('EDDB');
     // investigate trip-segments
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(0)).sourcePointId).toBe('EDTQ');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(0)).targetPointId).toBe('ENR-1');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(1)).sourcePointId).toBe('ENR-1');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(1)).targetPointId).toBe('EDDB');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[0]).sourcePointId).toBe('EDTQ');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[0]).targetPointId).toBe('ENR-1');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[1]).sourcePointId).toBe('ENR-1');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[1]).targetPointId).toBe('EDDB');
 
     // now insert point between ENR-1 and dest
     manager.insertPoint(1);
@@ -93,19 +93,19 @@ describe('TripManager', () => {
 
     // quick-check
     expect(manager.pointIds.length).toBe(4);
-    expect(manager.tripSegments.size).toBe(3);
+    expect(manager.trip.segments.length).toBe(3);
     // investigate points
     expect(manager.pointIds[0]).toBe('EDTQ');
     expect(manager.pointIds[1]).toBe('ENR-1');
     expect(manager.pointIds[2]).toBe('ENR-2');
     expect(manager.pointIds[3]).toBe('EDDB');
     // investigate trip-segments
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(0)).sourcePointId).toBe('EDTQ');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(0)).targetPointId).toBe('ENR-1');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(1)).sourcePointId).toBe('ENR-1');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(1)).targetPointId).toBe('ENR-2');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(2)).sourcePointId).toBe('ENR-2');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(2)).targetPointId).toBe('EDDB');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[0]).sourcePointId).toBe('EDTQ');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[0]).targetPointId).toBe('ENR-1');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[1]).sourcePointId).toBe('ENR-1');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[1]).targetPointId).toBe('ENR-2');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[2]).sourcePointId).toBe('ENR-2');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[2]).targetPointId).toBe('EDDB');
   });
 
   it('should remove a point (and its corresponding tripSegment) from a flight', async () => {
@@ -114,7 +114,7 @@ describe('TripManager', () => {
     manager.pointIds[1] = 'ENR-1';
 
     expect(manager.pointIds.length).toBe(3);
-    expect(manager.tripSegments.size).toBe(2);
+    expect(manager.trip.segments.length).toBe(2);
     expect(manager.pointIds[0]).toBe('EDTQ');
     expect(manager.pointIds[1]).toBe('ENR-1');
     expect(manager.pointIds[2]).toBe('EDDB');
@@ -124,19 +124,19 @@ describe('TripManager', () => {
 
     // quick-check
     expect(manager.pointIds.length).toBe(2);
-    expect(manager.tripSegments.size).toBe(1);
+    expect(manager.trip.segments.length).toBe(1);
     // investigate points
     expect(manager.pointIds[0]).toBe('EDTQ');
     expect(manager.pointIds[1]).toBe('EDDB');
     // investigate trip-segments
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(0)).sourcePointId).toBe('EDTQ');
-    expect(manager.findTripSegmentRouting(manager.tripSegments.get(0)).targetPointId).toBe('EDDB');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[0]).sourcePointId).toBe('EDTQ');
+    expect(manager.findTripSegmentRouting(manager.trip.segments[0]).targetPointId).toBe('EDDB');
   });
 
   it('should find a trip segment based on its index', async () => {
     // find default trip segment
     const tripSegment = manager.findTripSegment('0');
-    expect(tripSegment).toBe(defaultTrip.get(0));
+    expect(tripSegment).toBe(defaultTrip.segments[0]);
 
     // insert a child trip segment and find that as well
     const child = new TripSegment();

@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Flight, FlightRepositoryResponse } from 'src/data.model';
 import { map, concatMap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +27,7 @@ export class FlightService {
         if (response._embedded.flights.length > 0) {
           return response._embedded.flights[0];
         }
-        return new Flight('', '', '', '', '', ['', ''], null);
+        return new Flight('', '', '', '', '', ['', ''], '', null);
       })
     );
   }

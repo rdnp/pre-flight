@@ -23,7 +23,7 @@ public class RouteSegmentTestDataController {
 
 	@CrossOrigin()
 	@RequestMapping(path = "/setDefaultTestDataForRouteSegments", method = RequestMethod.POST)
-	public List<RouteSegment> getDefaultTestDataForRouteSegments() {
+	public List<RouteSegment> createDefaultTestDataForRouteSegments() {
 		List<RouteSegment> testData = new ArrayList<RouteSegment>();
 		RouteSegment testSegment = new RouteSegment();
 		testSegment.setSourcePointId("EDTQ");

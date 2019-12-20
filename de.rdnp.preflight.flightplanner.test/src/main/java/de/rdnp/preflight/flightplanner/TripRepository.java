@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @CrossOrigin(methods = {RequestMethod.DELETE, RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT})
-@RepositoryRestResource(collectionResourceRel = "flights", path = "flights")
-public interface FlightRepository extends CrudRepository<Flight, Long> {
-	
-	  List<Flight> findByName(@Param("name") String name);
+@RepositoryRestResource(collectionResourceRel = "trips", path = "trips")
+public interface TripRepository extends CrudRepository<Trip, Long>{
+
+	  List<Trip> findByFlightId(@Param("id") long flightId);
 
 	  @Transactional
-	  void deleteByName(@Param("name") String name);
+	  void deleteByFlightId(@Param("id") long flightId);
 }
