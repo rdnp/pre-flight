@@ -3,7 +3,7 @@
     <tr *ngFor="let f of flights">
       <td>
         <a
-          [routerLink]="['/flightplanner/edit', f.name]">{{ f.name + ' (' + f.aircraftType + '; ' + f.origin+ ' -&gt; ' +f.destination + ')'}}</a>
+          [routerLink]="['/flightplanner/edit', f.name]">{{ f.name + ' (' + f.origin+ ' -&gt; ' +f.destination + ')'}}</a>
       </td>
       <td>
         <button (click)="deleteFlight(f.name)">

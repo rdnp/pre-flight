@@ -15,7 +15,7 @@
           Create New Trip
         </ng-container>
         <ng-container *ngIf="i!==0">
-          Saved Trip #{{i}}
+          #{{i}}: {{tripList[i].dateOfFlight}}, {{tripList[i].estimatedOffBlockTime}} ({{tripList[i].aircraftRegistration}})
           <ng-container *ngIf="trip.deleted">
             (to be deleted)
           </ng-container>
