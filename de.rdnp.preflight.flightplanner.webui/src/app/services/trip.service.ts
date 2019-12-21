@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { TripRepositoryResponse, Trip } from 'src/data.model';
+import { TripRepositoryResponse, Trip, TripSegment } from 'src/data.model';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment.prod';
 
@@ -25,12 +25,23 @@ export class TripService {
     return this.http.get(queryUrl);
   }
 
+  private tripWithoutParentReferences(trip: Trip) {
+    return JSON.parse(
+      JSON.stringify(trip, (key, value) => {
+        if (key === 'parent') {
+          return undefined;
+        }
+        return value;
+      }
+      )) as Trip;
+  }
+
   createTrip(trip: Trip) {
-    return this.http.put(environment.repositoryUrl + '/trips/9223372036854775807', trip);
+    return this.http.put(environment.repositoryUrl + '/trips/9223372036854775807', this.tripWithoutParentReferences(trip));
   }
 
   updateTrip(trip: Trip) {
-    return this.http.put(trip._links.trip.href, trip);
+    return this.http.put(trip._links.trip.href, this.tripWithoutParentReferences(trip));
   }
 
   deleteTrip(trip: Trip) {
@@ -41,7 +52,7 @@ export class TripService {
     let hasContent = false;
     if (trip.dateOfFlight || trip.estimatedOffBlockTime
       || trip.aircraftRegistration || trip.aircraftType) {
-        hasContent = (trip.dateOfFlight.length > 0) || (trip.estimatedOffBlockTime.length > 0)
+      hasContent = (trip.dateOfFlight.length > 0) || (trip.estimatedOffBlockTime.length > 0)
         || (trip.aircraftRegistration.length > 0) || (trip.aircraftType.length > 0);
     }
     let segmentsHaveContent = false;

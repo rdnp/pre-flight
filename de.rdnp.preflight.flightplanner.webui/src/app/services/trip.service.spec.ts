@@ -85,23 +85,45 @@ describe('TripService', () => {
       expect(trips[1].segments[2].magneticCourse).toBe(264);
       expect(trips[1].segments[2].variation).toBe(2);
       expect(trips[1].segments[2].children.length).toBe(0);
-    }, console.log);
+    });
   }));
 
   it('should store newly created trip information in the repository', async(() => {
-    const testTripOne = new Trip(flightIdWithTrips, '', '', '', '', [], undefined);
+    const tripSegmentWithChildren = new TripSegment();
+    const child = new TripSegment();
+    child.parent = tripSegmentWithChildren;
+    tripSegmentWithChildren.children = [child];
+
+    const testTripOne = new Trip(flightIdWithTrips, '', '', '', '', [tripSegmentWithChildren], undefined);
     service.createTrip(testTripOne).subscribe(() =>
       service.findAllTripsForFlight(flightIdWithTrips).subscribe((trips) => {
         expect(trips.length).toBe(3);
       })
     );
 
-    const testTripTwo = new Trip(flightIdWithoutTrips, '', '', '', '', [], undefined);
+    const testTripTwo = new Trip(flightIdWithoutTrips, '', '', '', '', [tripSegmentWithChildren], undefined);
     service.createTrip(testTripTwo).subscribe(() =>
       service.findAllTripsForFlight(flightIdWithoutTrips).subscribe((trips) => {
         expect(trips.length).toBe(1);
       })
     );
+  }));
+
+  it('should update existing trip information in the repository', async(() => {
+    const tripSegmentWithChildren = new TripSegment();
+    const child = new TripSegment();
+    child.parent = tripSegmentWithChildren;
+    tripSegmentWithChildren.children = [child];
+
+    service.findAllTripsForFlight(flightIdWithTrips).subscribe((trips: Trip[]) => {
+      service.updateTrip(new Trip(flightIdWithTrips, '', '', 'DELVC', '', [tripSegmentWithChildren], trips[0]._links)).subscribe(
+        () =>
+          service.findAllTripsForFlight(flightIdWithTrips).subscribe((tripsAfterUpdate: Trip[]) => {
+            expect(tripsAfterUpdate.length).toBe(2);
+            expect(tripsAfterUpdate[0].aircraftRegistration).toBe('DELVC');
+            expect(tripsAfterUpdate[0].aircraftType).toBe('');
+          }));
+    });
   }));
 
   it('should delete trip information from the repository', async(() => {
