@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Flight } from '../../data.model';
 import { FlightService } from '../services/flight.service';
-import { async } from '@angular/core/testing';
+import { TripService } from '../services/trip.service';
+import { forkJoin, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-flight-list',
@@ -12,7 +13,7 @@ export class FlightListComponent implements OnInit {
 
   private internalFlights: Flight[];
 
-  constructor(private flightService: FlightService) {
+  constructor(private flightService: FlightService, private tripService: TripService) {
   }
 
   ngOnInit(): void {
@@ -33,15 +34,18 @@ export class FlightListComponent implements OnInit {
   }
 
   public deleteFlight(name: string) {
-    this.flightService.deleteFlight(name).subscribe(
-      () => {
-        this.loadFlights();
-      },
-      error => {
-        console.log(error);
-        this.loadFlights();
-      }
-    );
+    const deleteActions: Observable<object>[] = [];
+    deleteActions.push(this.flightService.deleteFlight(name));
+    deleteActions.push(this.tripService.deleteAllTripsForFlight(name));
+    forkJoin(deleteActions).subscribe(
+        () => {
+          this.loadFlights();
+        },
+        error => {
+          console.log(error);
+          this.loadFlights();
+        }
+      );
     // Note. REST Response is discarded
   }
 

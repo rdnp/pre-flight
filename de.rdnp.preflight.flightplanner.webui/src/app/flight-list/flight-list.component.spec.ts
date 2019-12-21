@@ -5,6 +5,7 @@ import { FlightService } from '../services/flight.service';
 import { of } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
+import { TripService } from '../services/trip.service';
 
 class MockFlightService extends FlightService {
   getFlights() {
@@ -15,8 +16,14 @@ class MockFlightService extends FlightService {
   }
 
   deleteFlight(name: string) {
-    const result = null;
-    return of(result);
+    return of({});
+  }
+}
+
+class MockTripService extends TripService {
+
+  deleteAllTripsForFlight(name: string) {
+    return of({});
   }
 }
 
@@ -29,7 +36,8 @@ describe('FlightListComponent', () => {
       declarations: [FlightListComponent],
       imports: [HttpClientModule, RouterModule.forRoot([
         { path: '**', component: FlightListComponent }])],
-      providers: [{ provide: FlightService, useClass: MockFlightService }],
+      providers: [{ provide: FlightService, useClass: MockFlightService },
+      { provide: TripService, useClass: MockTripService }],
     })
       .compileComponents();
   }));
@@ -54,14 +62,21 @@ describe('FlightListComponent', () => {
     expect(component.flights[1].alternate).toBe('EDDT');
   });
 
-  it('should delete a flight using FlightService', async () => {
+  it('should delete a flight and all its trips using FlightService and TripService', async () => {
     await fixture.whenStable();
     const flightService = fixture.debugElement.injector.get(FlightService);
     const deleteSpy = spyOn(flightService, 'deleteFlight').and.callThrough();
+    const tripService = fixture.debugElement.injector.get(TripService);
+    const deleteTripSpy = spyOn(tripService, 'deleteAllTripsForFlight').and.callThrough();
+    const getFlightsSpy = spyOn(flightService, 'getFlights').and.callThrough();
 
     component.deleteFlight('testFlightName');
 
     expect(deleteSpy).toHaveBeenCalledWith('testFlightName');
+    expect(deleteTripSpy).toHaveBeenCalledWith('testFlightName');
+
+    await fixture.whenStable();
+    expect(getFlightsSpy).toHaveBeenCalledTimes(1);
   });
 
 });
