@@ -8,11 +8,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@RepositoryRestResource(collectionResourceRel = "flights", path = "flights")
-public interface FlightRepository extends CrudRepository<Flight, Long> {
-	
-	  List<Flight> findByName(@Param("name") String name);
+@RepositoryRestResource(collectionResourceRel = "trips", path = "trips")
+public interface TripRepository extends CrudRepository<Trip, Long>{
+
+	  List<Trip> findByFlightId(@Param("id") long flightId);
 
 	  @Transactional
-	  void deleteByName(@Param("name") String name);
+	  void deleteByFlightId(@Param("id") long flightId);
 }

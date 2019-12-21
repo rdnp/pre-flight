@@ -56,8 +56,6 @@
 				</configuration>
 			</plugin>
 
-			<!-- Plugin to copy the content of /angular/dist/ directory to output 
-				directory (ie/ /target/transactionManager-1.0/) -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -71,11 +69,23 @@
 						</goals>
 						<configuration>
 							<overwrite>true</overwrite>
-							<!-- This folder is the folder where your angular files will be copied 
-								to. It must match the resulting war-file name. So if you have customized 
-								the name of war-file for ex. as "app.war" then below value should be ${project.build.directory}/app/ 
-								Value given below is as per default war-file name -->
 							<outputDirectory>../${server.project.name}/src/main/resources/public</outputDirectory>
+							<resources>
+								<resource>
+									<directory>dist/${angular.project.name}</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-resources-to-public</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<overwrite>true</overwrite>
+							<outputDirectory>../${server.project.name}/public</outputDirectory>
 							<resources>
 								<resource>
 									<directory>dist/${angular.project.name}</directory>
