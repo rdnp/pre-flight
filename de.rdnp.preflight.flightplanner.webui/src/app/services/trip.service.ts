@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { TripRepositoryResponse, Trip, TripSegment } from 'src/data.model';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment.prod';
+import { ChildrenOutletContexts } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class TripService {
     const queryUrl = environment.repositoryUrl + '/trips/search/findByFlightId?id=' + parseFloat(flightId).toFixed(0);
     return this.http.get(queryUrl).pipe(
       map((response: TripRepositoryResponse) => {
-        return response._embedded.trips;
+        return this.restoreParentReferences(response._embedded.trips);
       })
     );
   }
@@ -25,7 +26,22 @@ export class TripService {
     return this.http.get(queryUrl);
   }
 
-  private tripWithoutParentReferences(trip: Trip) {
+  private restoreParentReferencesForSegment(segment: TripSegment) {
+    if (segment.children) {
+      segment.children.forEach((child) => { child.parent = segment; });
+    }
+  }
+
+  private restoreParentReferences(tripList: Trip[]) {
+    for (const trip of tripList) {
+      if (trip.segments) {
+        trip.segments.forEach(this.restoreParentReferencesForSegment);
+      }
+    }
+    return tripList;
+  }
+
+  private removeParentReferences(trip: Trip) {
     return JSON.parse(
       JSON.stringify(trip, (key, value) => {
         if (key === 'parent') {
@@ -37,11 +53,11 @@ export class TripService {
   }
 
   createTrip(trip: Trip) {
-    return this.http.put(environment.repositoryUrl + '/trips/9223372036854775807', this.tripWithoutParentReferences(trip));
+    return this.http.put(environment.repositoryUrl + '/trips/9223372036854775807', this.removeParentReferences(trip));
   }
 
   updateTrip(trip: Trip) {
-    return this.http.put(trip._links.trip.href, this.tripWithoutParentReferences(trip));
+    return this.http.put(trip._links.trip.href, this.removeParentReferences(trip));
   }
 
   deleteTrip(trip: Trip) {

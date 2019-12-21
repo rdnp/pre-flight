@@ -74,6 +74,7 @@ describe('TripService', () => {
       expect(trips[0].segments[1].children[0].hourlyFuelConsumptionRate).toBe(12);
       expect(trips[0].segments[1].children[0].groundSpeed).toBe(76);
       expect(trips[0].segments[1].children[0].timeInMinutes).toBe(2);
+      expect(trips[0].segments[1].children[0].parent).toBe(trips[0].segments[1]);
 
       expect(trips[1].segments[0].altitude).toBe(5000);
       expect(trips[1].segments[0].windDirection).toBe(350);
