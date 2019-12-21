@@ -106,23 +106,20 @@ export class Flight {
     origin: string;
     destination: string;
     alternate: string;
-    aircraftType: string;
     pointIds: string[];
-    id: string;
 
     // tslint:disable-next-line: variable-name
     _links: FlightLinks; // variable from Spring repository
 
-    constructor(name: string, origin: string, destination: string, alternate: string, aircraftType: string, pointIds: string[], id: string,
-        // tslint:disable-next-line: align variable-name
+    constructor(
+        name: string, origin: string, destination: string, alternate: string, pointIds: string[],
+        // tslint:disable-next-line: variable-name
         _links: FlightLinks) {
         this.name = name;
         this.origin = origin;
         this.destination = destination;
-        this.aircraftType = aircraftType;
         this.pointIds = pointIds;
         this.alternate = alternate;
-        this.id = id;
     }
 }
 

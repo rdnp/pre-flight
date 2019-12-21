@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Flight, RouteSegment, TripSegment, Trip } from 'src/data.model';
+import { Flight, RouteSegment, Trip } from 'src/data.model';
 import { FlightService } from '../services/flight.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
@@ -8,7 +8,7 @@ import { TripComputerService } from '../services/trip-computer.service';
 import { TripManager } from './trip-manager';
 import { InputValidator } from './input-validator';
 import { TripService } from '../services/trip.service';
-import { Observable, of, forkJoin } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-flight-editor',
@@ -145,7 +145,7 @@ export class FlightEditorComponent implements OnInit {
     return index;
   }
 
-  getLegDistance(tripSegmentIndexInput: string) {
+  getTimeLimitedTripSegmentDistance(tripSegmentIndexInput: string) {
     const leg = this.tripManager.findTripSegment(tripSegmentIndexInput);
     return this.tripComputeService.distance(leg.timeInMinutes, leg.groundSpeed);
   }

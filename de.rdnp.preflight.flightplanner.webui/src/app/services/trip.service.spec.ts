@@ -53,11 +53,7 @@ describe('TripService', () => {
     }, console.log);
   })));
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
-  it('should retrieve all trip information from default sample in test repository', async(() => {
+  it('should retrieve all trip information from the repository', async(() => {
     service.findAllTripsForFlight(flightIdWithTrips).subscribe((trips: Trip[]) => {
       expect(trips.length).toBe(2);
       expect(trips[0].flightId.toString()).toBe(flightIdWithTrips);
@@ -92,7 +88,7 @@ describe('TripService', () => {
     }, console.log);
   }));
 
-  it('should store newly created trip information to the repository', async(() => {
+  it('should store newly created trip information in the repository', async(() => {
     const testTripOne = new Trip(flightIdWithTrips, '', '', '', '', [], undefined);
     service.createTrip(testTripOne).subscribe(() =>
       service.findAllTripsForFlight(flightIdWithTrips).subscribe((trips) => {
@@ -118,7 +114,7 @@ describe('TripService', () => {
     });
   }));
 
-  it('should delete all trip information from a flight in the default sample in test repository', async(() => {
+  it('should delete all trip information from a flight in the repository', async(() => {
     service.deleteAllTripsForFlight(flightIdWithTrips).subscribe(() => {
       service.findAllTripsForFlight(flightIdWithTrips).subscribe((tripsAfterDeletion: Trip[]) => {
         expect(tripsAfterDeletion.length).toBe(0);
@@ -126,7 +122,7 @@ describe('TripService', () => {
     }, console.log);
   }));
 
-  it('should determine if a trip is empty', () => {
+  it('should determine correctly if no user input has been made to a trip', () => {
     expect(service.isEmptyTrip(new Trip('', '', '', '', '', [], undefined))).toBeTruthy();
     expect(service.isEmptyTrip(new Trip('a', '', '', '', '', [], undefined))).toBeTruthy();
     expect(service.isEmptyTrip(new Trip('', 'a', '', '', '', [], undefined))).toBeFalsy();

@@ -30,12 +30,7 @@ describe('RouteSegmentService', () => {
     deleteTestData.subscribe(() => { console.log('Test data for route-segments deleted'); }, console.log);
   })));
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
-
-  it('finds the route segments from the test data', async(() => {
+  it('should find all route segments from the repository', async(() => {
     // check three route segments from the default test data
     service.findRouteSegment('DKB', 'EDTY').subscribe((foundSegment: RouteSegment) => {
       expect(foundSegment.sourcePointId).toBe('DKB');
@@ -71,7 +66,7 @@ describe('RouteSegmentService', () => {
     });
   }));
 
-  it('finds the inverse of route segment in the test data', async(() => {
+  it('should respond with the reverse to an existing route segment in the repository as a fallback', async(() => {
     service.findRouteSegment('EDTY', 'DKB').subscribe((foundSegment: RouteSegment) => {
       expect(foundSegment.sourcePointId).toBe('EDTY');
       expect(foundSegment.targetPointId).toBe('DKB');
@@ -81,7 +76,7 @@ describe('RouteSegmentService', () => {
     });
   }));
 
-  it('saves (updates existing and creates new) route segments to the test data', async(() => {
+  it('should save route segments to the repository', async(() => {
     // modify existing route segment
     service.findRouteSegment('DKB', 'EDTY').subscribe((foundSegment: RouteSegment) => {
       foundSegment.distance = 15;

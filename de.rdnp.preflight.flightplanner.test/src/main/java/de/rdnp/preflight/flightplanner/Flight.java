@@ -26,8 +26,6 @@ public final class Flight {
 	
 	private String alternate;
 	
-	private String aircraftType;
-	
 	@ElementCollection
 	private List<String> pointIds;
 
@@ -72,14 +70,6 @@ public final class Flight {
 
 	public void setAlternate(String alternate) {
 		this.alternate = alternate;
-	}
-
-	public String getAircraftType() {
-		return aircraftType;
-	}
-
-	public void setAircraftType(String aircraftType) {
-		this.aircraftType = aircraftType;
 	}
 
 	public List<String> getPointIds() {

@@ -6,11 +6,6 @@ import { TripSegment } from 'src/data.model';
 describe('TripComputerService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
-  it('should be created', () => {
-    const service: TripComputerService = TestBed.get(TripComputerService);
-    expect(service).toBeTruthy();
-  });
-
   it('should compute magnetic course out of true course and variation', () => {
     const service: TripComputerService = TestBed.get(TripComputerService);
     expect(service.magneticCourse(0, 0)).toBe(0);

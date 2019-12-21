@@ -40,21 +40,15 @@ describe('FlightListComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
   it('should have flights from flight service', async () => {
     await fixture.whenStable();
     expect(component).toBeTruthy();
     expect(component.flights.length).toBe(2);
     expect(component.flights[0].name).toBe('Trip to Düsseldorf');
-    expect(component.flights[0].aircraftType).toBe('C172');
     expect(component.flights[0].origin).toBe('EDTQ');
     expect(component.flights[0].destination).toBe('EDDL');
     expect(component.flights[0].alternate).toBe('EDDK');
     expect(component.flights[1].name).toBe('Trip to Berlin');
-    expect(component.flights[1].aircraftType).toBe('C172');
     expect(component.flights[1].origin).toBe('EDTQ');
     expect(component.flights[1].destination).toBe('EDDB');
     expect(component.flights[1].alternate).toBe('EDDT');

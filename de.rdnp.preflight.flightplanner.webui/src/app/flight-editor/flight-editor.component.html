@@ -1,19 +1,19 @@
 <h2>Flight Details</h2>
-<div>
+<div id="flight-details">
   <p *ngIf="flight" align="center">
-    <label><span> Origin:</span><input [value]="flight.origin" (input)="flight.origin = $event.target.value" size="5" /></label>
+    <label><span> Origin:</span><input id="flight-origin" [value]="flight.origin" (input)="flight.origin = $event.target.value" size="5" /></label>
     <label><span>
-      Destination:</span><input [value]="flight.destination" (input)="flight.destination = $event.target.value"
+      Destination:</span><input id="flight-destination" [value]="flight.destination" (input)="flight.destination = $event.target.value"
         size="5" /></label>
     <label><span> Alternate:</span>
-      <input [value]="flight.alternate" (input)="flight.alternate = $event.target.value" size="5" /></label>
+      <input id="flight-alternate" [value]="flight.alternate" (input)="flight.alternate = $event.target.value" size="5" /></label>
   </p>
 </div>
 <h2>Trip Details</h2>
-<div>
+<div id="trip-details">
   <p *ngIf="flight" align="center">
-    <select name="trips" id="trip-select" (input)="selectTrip($event.target.selectedIndex)">
-      <option *ngFor="let trip of tripList; index as i">
+    <select id="trip-select" name="trips" (input)="selectTrip($event.target.selectedIndex)">
+      <option id="trip-select-option-{{i}}"  *ngFor="let trip of tripList; index as i">
         <ng-container *ngIf="i===0">
           Create New Trip
         </ng-container>
@@ -26,104 +26,104 @@
         </ng-container>
       </option>
     </select>
-    <button *ngIf="selectedTrip.flightId && !selectedTrip.deleted" (click)="selectedTrip.deleted = true">Delete</button>
+    <button id="trip-delete-button" *ngIf="selectedTrip.flightId && !selectedTrip.deleted" (click)="selectedTrip.deleted = true">Delete</button>
     <ng-container *ngIf="selectedTrip.flightId && selectedTrip.deleted">
       This trip will be deleted when you save.
-      <button (click)="selectedTrip.deleted = false">Undo</button>
+      <button id="trip-undelete-button" (click)="selectedTrip.deleted = false">Undo</button>
     </ng-container>
   </p>
   <p *ngIf="selectedTrip" align="center">
-    <label>Date of Flight: <input [value]="selectedTrip.dateOfFlight" (input)="selectedTrip.dateOfFlight = $event.target.value"
+    <label>Date: <input id="trip-date" [value]="selectedTrip.dateOfFlight" (input)="selectedTrip.dateOfFlight = $event.target.value"
       type="date" /></label>
-    <label><span> EOBT:</span><input [value]="selectedTrip.estimatedOffBlockTime"
+    <label><span> EOBT:</span><input id="trip-eobt" [value]="selectedTrip.estimatedOffBlockTime"
       (input)="selectedTrip.estimatedOffBlockTime = $event.target.value" type="time" /></label>
-    <label><span> A/C Reg.:</span><input [value]="selectedTrip.aircraftRegistration"
+    <label><span> A/C Reg.:</span><input id="trip-ac-reg" [value]="selectedTrip.aircraftRegistration"
       (input)="selectedTrip.aircraftRegistration = $event.target.value" size="6" /></label>
-    <label><span> A/C Type:</span><input [value]="selectedTrip.aircraftType" (input)="selectedTrip.aircraftType = $event.target.value"
+    <label><span> A/C Type:</span><input id="trip-ac-type" [value]="selectedTrip.aircraftType" (input)="selectedTrip.aircraftType = $event.target.value"
       size="4" /></label>
   </p>
 </div>
 <h2>Flight Route</h2>
-<div align="center">
+<div id="flight-route" align="center">
   <table *ngIf="flight?.pointIds">
     <ng-container *ngFor="let routePoint of flight.pointIds; index as i; trackBy:trackByIndex">
       <tr>
-        <td><button (click)="removePoint(i)">&minus;</button></td>
-        <td colspan="3"><input [value]="flight.pointIds[i]" (input)="setPointId(i, $event.target.value)" size="18" />
+        <td><button id="remove-point-button-{{i}}" (click)="removePoint(i)">&minus;</button></td>
+        <td colspan="3"><input id="point-name-{{i}}" [value]="flight.pointIds[i]" (input)="setPointId(i, $event.target.value)" size="18" />
         </td>
       </tr>
       <!-- Split off / time-limited trip segments -->
       <tr *ngFor="let childSegment of selectedTrip?.segments[i]?.children; index as c">
         <td colspan="4">Timed Leg {{childSegment.timeInMinutes.toFixed(0)}}''
-          ({{getLegDistance(i + '.' + c).toFixed(1)}} NM)</td>
+          ({{getTimeLimitedTripSegmentDistance(i + '.' + c).toFixed(1)}} NM)</td>
         <!-- Route-segment trip input data -->
-        <td>VAR<br><input size="3" [value]="childSegment.variation"
+        <td>VAR<br><input id="trip-var-{{i}}.{{c}}" size="3" [value]="childSegment.variation"
             (input)="setVariation(i + '.' + c, $event.target.value)" /></td>
-        <td>FCR(h)<br><input size="3" [value]="childSegment.hourlyFuelConsumptionRate"
+        <td>FCR(h)<br><input id="trip-fcr-{{i}}.{{c}}" size="3" [value]="childSegment.hourlyFuelConsumptionRate"
             (input)="setFuelConsumptionRate(i + '.' + c, $event.target.value)" /></td>
-        <td nowrap>W / V<br><input size="3" [value]="childSegment.windDirection"
+        <td nowrap>W / V<br><input id="trip-wv-direction-{{i}}.{{c}}" size="3" [value]="childSegment.windDirection"
             (input)="setWindVector(i + '.' + c, $event.target.value, childSegment.windSpeed)" />
-          <input size="2" [value]="childSegment.windSpeed"
+          <input id="trip-wv-speed-{{i}}.{{c}}" size="2" [value]="childSegment.windSpeed"
             (input)="setWindVector(i + '.' + c, childSegment.windDirection, $event.target.value)" /></td>
-        <td>TAS(kt)<br><input size="3" [value]="childSegment.trueAirspeed"
+        <td>TAS(kt)<br><input id="trip-tas-{{i}}.{{c}}" size="3" [value]="childSegment.trueAirspeed"
             (input)="setTrueAirspeed(i + '.' + c, $event.target.value)" /></td>
-        <td>ALT(ft)<br><input size="5" [value]="childSegment.altitude"
+        <td>ALT(ft)<br><input id="trip-alt-{{i}}.{{c}}" size="5" [value]="childSegment.altitude"
             (input)="setAltitude(i + '.' + c, $event.target.value)" /></td>
         <!-- Route-segment trip derived (output) data (displayed in input boxes to allow for corrections) -->
-        <td>MC<br><input size="3" [value]="childSegment.magneticCourse.toFixed(0)" readonly="true" /></td>
-        <td>MH<br><input size="3" [value]="childSegment.magneticHeading.toFixed(0)" readonly="true" /></td>
-        <td>GS(kt)<br><input size="3" [value]="childSegment.groundSpeed.toFixed(0)" readonly="true" /></td>
-        <td>t(min)<br><input size="2" [value]="childSegment.timeInMinutes.toFixed(0)"
+        <td>MC<br><input id="trip-mc-{{i}}.{{c}}" size="3" [value]="childSegment.magneticCourse.toFixed(0)" readonly="true" /></td>
+        <td>MH<br><input id="trip-mh-{{i}}.{{c}}" size="3" [value]="childSegment.magneticHeading.toFixed(0)" readonly="true" /></td>
+        <td>GS(kt)<br><input id="trip-gs-{{i}}.{{c}}" size="3" [value]="childSegment.groundSpeed.toFixed(0)" readonly="true" /></td>
+        <td>t(min)<br><input id="trip-t-{{i}}.{{c}}" size="2" [value]="childSegment.timeInMinutes.toFixed(0)"
             (input)="setTime(i + '.' + c, $event.target.value)" />
         </td>
-        <td>F<br><input size="3" [value]="childSegment.fuel.toFixed(1)" readonly="true" /></td>
+        <td>F<br><input id="trip-f-{{i}}.{{c}}" size="3" [value]="childSegment.fuel.toFixed(1)" readonly="true" /></td>
 
-        <td>Edit<br><input type="checkbox" [value]="selectedTripSegments.get(i + '.' + c)"
+        <td>Edit<br><input id="trip-edit-{{i}}.{{c}}" type="checkbox" [value]="selectedTripSegments.get(i + '.' + c)"
             (change)="selectedTripSegments.set(i + '.' + c, $event.target.checked)"></td>
       </tr>
       <!-- Main route / trip segment -->
       <tr *ngIf="i < flight.pointIds.length - 1">
         <!-- Static point data -->
         <td><button (click)="insertPoint(i)">+</button></td>
-        <td>MSA(ft)<br><input [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.minimumSafeAltitude"
+        <td>MSA(ft)<br><input id="route-msa-{{i}}" [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.minimumSafeAltitude"
             (input)="setMinimumSafeAltitude(routePoint,flight.pointIds[i+1], $event.target.value)" size="5" /></td>
-        <td>TC<br><input [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.trueCourse"
+        <td>TC<br><input id="route-tc-{{i}}" [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.trueCourse"
             (input)="setTrueCourse(routePoint,flight.pointIds[i+1], $event.target.value)" size="3" /></td>
-        <td>d(NM)<br><input [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.distance"
+        <td>d(NM)<br><input id="route-d-{{i}}" [value]="findLoadedRouteSegment(routePoint,flight.pointIds[i+1])?.distance"
             (input)="setDistance(routePoint,flight.pointIds[i+1], $event.target.value)" size="2" /></td>
 
         <!-- Route-segment trip input data -->
-        <td>VAR<br><input size="3" [value]="selectedTrip?.segments[i]?.variation"
+        <td>VAR<br><input id="trip-var-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.variation"
             (input)="setVariation(i.toString(), $event.target.value)" /></td>
-        <td>FCR(h)<br><input size="3" [value]="selectedTrip?.segments[i]?.hourlyFuelConsumptionRate"
+        <td>FCR(h)<br><input id="trip-fcr-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.hourlyFuelConsumptionRate"
             (input)="setFuelConsumptionRate(i.toString(), $event.target.value)" /></td>
-        <td nowrap>W / V<br><input size="3" [value]="selectedTrip?.segments[i]?.windDirection"
+        <td nowrap>W / V<br><input id="trip-wv-direction-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.windDirection"
             (input)="setWindVector(i.toString(), $event.target.value, selectedTrip?.segments[i]?.windSpeed)" />
-          <input size="2" [value]="selectedTrip?.segments[i]?.windSpeed"
+          <input id="trip-wv-speed-{{i}}" size="2" [value]="selectedTrip?.segments[i]?.windSpeed"
             (input)="setWindVector(i.toString(), selectedTrip?.segments[i]?.windDirection, $event.target.value)" /></td>
-        <td>TAS(kt)<br><input size="3" [value]="selectedTrip?.segments[i]?.trueAirspeed"
+        <td>TAS(kt)<br><input id="trip-tas-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.trueAirspeed"
             (input)="setTrueAirspeed(i.toString(), $event.target.value)" /></td>
-        <td>ALT(ft)<br><input size="5" [value]="selectedTrip?.segments[i]?.altitude"
+        <td>ALT(ft)<br><input id="trip-alt-{{i}}" size="5" [value]="selectedTrip?.segments[i]?.altitude"
             (input)="setAltitude(i.toString(), $event.target.value)" /></td>
         <!-- Route-segment trip derived (output) data (displayed in input boxes to allow for corrections) -->
-        <td>MC<br><input size="3" [value]="selectedTrip?.segments[i]?.magneticCourse.toFixed(0)" readonly="true" /></td>
-        <td>MH<br><input size="3" [value]="selectedTrip?.segments[i]?.magneticHeading.toFixed(0)" readonly="true" />
+        <td>MC<br><input id="trip-mc-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.magneticCourse.toFixed(0)" readonly="true" /></td>
+        <td>MH<br><input id="trip-mh-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.magneticHeading.toFixed(0)" readonly="true" />
         </td>
-        <td>GS(kt)<br><input size="3" [value]="selectedTrip?.segments[i]?.groundSpeed.toFixed(0)" readonly="true" />
+        <td>GS(kt)<br><input id="trip-gs-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.groundSpeed.toFixed(0)" readonly="true" />
         </td>
-        <td>t(min)<br><input size="2" [value]="selectedTrip?.segments[i]?.timeInMinutes.toFixed(0)"
+        <td>t(min)<br><input id="trip-t-{{i}}" size="2" [value]="selectedTrip?.segments[i]?.timeInMinutes.toFixed(0)"
             (input)="setTime(i.toString(), $event.target.value)" />
         </td>
-        <td>F<br><input size="3" [value]="selectedTrip?.segments[i]?.fuel.toFixed(1)" readonly="true" /></td>
+        <td>F<br><input id="trip-f-{{i}}" size="3" [value]="selectedTrip?.segments[i]?.fuel.toFixed(1)" readonly="true" /></td>
 
-        <td>Edit<br><input type="checkbox" [value]="selectedTripSegments.get(i.toString())"
+        <td>Edit<br><input id="trip-edit-{{i}}" type="checkbox" [value]="selectedTripSegments.get(i.toString())"
             (change)="selectedTripSegments.set(i.toString(), $event.target.checked)"></td>
       </tr>
     </ng-container>
   </table>
 </div>
 <h2>Save Flight</h2>
-<div>
-  Name: <input *ngIf="flight" [value]="flight.name" (input)="flight.name = $event.target.value" size="40" />
-  <button (click)="save()">Save</button> <button [routerLink]="['/flightplanner/list']">Return</button>
+<div id="save-flight">
+  Name: <input id="save-flight-name" *ngIf="flight" [value]="flight.name" (input)="flight.name = $event.target.value" size="40" />
+  <button id="save-flight-button" (click)="save()">Save</button> <button [routerLink]="['/flightplanner/list']">Return</button>
 </div>

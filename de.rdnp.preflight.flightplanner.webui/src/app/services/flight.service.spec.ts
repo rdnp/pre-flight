@@ -27,11 +27,7 @@ describe('FlightService', () => {
     deleteTestData.subscribe(() => { console.log('Test data for flights deleted'); }, console.log);
   })));
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
-  it('retrieves all the flights from integrationtest server', async(() => {
+  it('should retrieve all the flights in a repository', async(() => {
     service.getFlights().subscribe(flights => {
       expect(flights.length).toBeGreaterThan(0);
       expect(flights[0].origin).toEqual('EDTQ');
@@ -53,7 +49,7 @@ describe('FlightService', () => {
     });
   }));
 
-  it('retrieves an existing and non-existing flight from integrationtest server by name',
+  it('should return flight record when searching any existing or non-existing flight in the repository',
     async(() => {
       service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
         expect(flightData.origin).toEqual('EDTQ');
@@ -66,7 +62,7 @@ describe('FlightService', () => {
       });
     }));
 
-  it('deletes an existing flight from integrationtest server by name',
+  it('should delete a flight from the repository',
     async(() => {
       service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
         expect(flightData.origin).toEqual('EDTQ');
@@ -82,7 +78,7 @@ describe('FlightService', () => {
       });
     }));
 
-  it('Saves an existing flight on integrationtest server by name',
+  it('should save a flight to the repository',
     async(() => {
       service.getFlightByName('Sample.Local.Flight').subscribe(flightData => {
         expect(flightData.origin).toEqual('EDTQ');

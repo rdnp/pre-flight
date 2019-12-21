@@ -1,12 +1,12 @@
 <div align="center">
-  <table>
-    <tr *ngFor="let f of flights">
+  <table id="flight-table">
+    <tr *ngFor="let f of flights; index as i">
       <td>
-        <a
+        <a id="{{ 'flight-row-' + i }}"
           [routerLink]="['/flightplanner/edit', f.name]">{{ f.name + ' (' + f.origin+ ' -&gt; ' +f.destination + ')'}}</a>
       </td>
       <td>
-        <button (click)="deleteFlight(f.name)">
+        <button id="{{ 'flight-row-delete-' + i }}" (click)="deleteFlight(f.name)">
           Delete
         </button>
       </td>

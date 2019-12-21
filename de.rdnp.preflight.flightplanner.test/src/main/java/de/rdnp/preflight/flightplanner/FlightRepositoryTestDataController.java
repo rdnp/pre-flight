@@ -29,7 +29,6 @@ public class FlightRepositoryTestDataController {
 		flight.setName("Sample.Local.Flight");
 		flight.setOrigin("EDTQ");
 		flight.setDestination("EDTQ");
-		flight.setAircraftType("C172");
 		pointIds.add("EDTQ");
 		pointIds.add("EDTQ");
 		flight.setPointIds(pointIds);
