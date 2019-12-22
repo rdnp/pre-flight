@@ -45,12 +45,11 @@ public class ApproachPlateManagerWebAppBuilder {
 
 	private void createContainerDecomposition(SoftwareSystem aipService, Person pilot) {
 		Component approachPlateUpdater = approachPlateManagerWebApp.addComponent("Approach Plate Updater",
-				"Checks if approach plates in the DB must be updated and keeps the DB up to date; fetches current appraoch plates from the DB",
-				"REST Service");
-		Component approachPlateDB = approachPlateManagerWebApp.addComponent("Approach Plate DB",
-				"Stores the data of the downloaded approach plates", "Database");
+				"Checks if approach plates in the DB must be updated and keeps the DB up to date; fetches current appraoch plates from the DB");
+		Component approachPlateDB = approachPlateManagerWebApp.addComponent("Approach Plate Repository",
+				"Stores the data of the downloaded approach plates", "Repository Service");
 		Component approachPlateManagerClient = approachPlateManagerWebApp.addComponent("Approach Plate Manager UI",
-				"Provides a Web UI where the user can get approach plates for a flight", "Web-Client");
+				"Provides a Web UI where the user can get approach plates for a flight", "Angular Component");
 		approachPlateManagerClient.uses(approachPlateUpdater, "Get approach plates for flight");
 		approachPlateUpdater.uses(approachPlateDB, "Store downloaded approach plates, get approach plates for flight");
 		approachPlateUpdater.uses(aipService, "Download approach plates");
@@ -72,7 +71,7 @@ public class ApproachPlateManagerWebAppBuilder {
 	 */
 	public void buildViews(@Nonnull ViewSet views) {
 		ComponentView componentView = views.createComponentView(approachPlateManagerWebApp,
-				"Approach Plate Manager Web App", "Web app content overview");
+				"Pre-Flight - Approach Plate Manager - Components", "Web app content overview");
 		componentView.add(pilot);
 		componentView.add(aipService);
 		componentView.addAllComponents();

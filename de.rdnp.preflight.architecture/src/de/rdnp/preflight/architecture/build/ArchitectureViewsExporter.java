@@ -44,7 +44,7 @@ public class ArchitectureViewsExporter {
 			System.out.println();
 			System.out.println("=============== EXPORTING: " + view.getName() + "===============");
 			System.out.println(stringWriter.toString());
-			try (PrintWriter fileWriter = new PrintWriter(new File("target/plantuml", view.getName() + ".puml"))) {
+			try (PrintWriter fileWriter = new PrintWriter(new File("target/plantuml", view.getKey() + ".puml"))) {
 				fileWriter.println(stringWriter.toString());
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();

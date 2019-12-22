@@ -74,14 +74,14 @@ public class PreFlightSystemBuilder {
 	 */
 	public void buildViews(@Nonnull ViewSet views) {
 		// Context view
-		SystemContextView contextView = views.createSystemContextView(preFlight, "SystemContext",
+		SystemContextView contextView = views.createSystemContextView(preFlight, "Pre-Flight - System Context",
 				"Pre-Flight System Context diagram.");
 		contextView.addAllSoftwareSystems();
 		contextView.addAllPeople();
 		
 		// Container view
 		ContainerView systemDecompositionView = views.createContainerView(preFlight,
-				"System Decomposition", "Pre-Flight system decomposition view");
+				"Pre-Flight - Containers", "Pre-Flight system decomposition view");
 		systemDecompositionView.addAllContainers();
 		systemDecompositionView.add(pilot);
 		systemDecompositionView.add(aipService);

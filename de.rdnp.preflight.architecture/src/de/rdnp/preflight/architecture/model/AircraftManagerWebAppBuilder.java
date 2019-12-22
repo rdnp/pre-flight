@@ -17,7 +17,7 @@ public class AircraftManagerWebAppBuilder {
 
 	private Container aircraftManagerWebApp;
 	private Person pilot;
-	private Component aircraftSpecificationService;
+	private Component aircraftSpecificationRepository;
 	private Container flightPlanningWebApp;
 	private Component weightAndBalanceComputer;
 	private Component takeOffAndLandingPerformanceComputer;
@@ -42,20 +42,18 @@ public class AircraftManagerWebAppBuilder {
 	}
 
 	private void createContainerDecomposition(Person pilot) {
-		aircraftSpecificationService = aircraftManagerWebApp.addComponent("Aircraft Specification Service",
-				"Service to access the aircraft performance DB for retrieving and storing aircraft specifications", "REST Service");
+		aircraftSpecificationRepository = aircraftManagerWebApp.addComponent("Aircraft Specification Repository",
+				"Repository service for retrieving and storing aircraft specifications", "Repository Service");
 		weightAndBalanceComputer = aircraftManagerWebApp.addComponent("Weight and Balance Computer",
-				"Service to compute the weight and balance (take-off mass, landing mass, zero fuel mass).", "REST Service");
+				"Service to compute the weight and balance (take-off mass, landing mass, zero fuel mass).");
 		takeOffAndLandingPerformanceComputer = aircraftManagerWebApp.addComponent("T/O and LDG Performance Computer",
-				"Service to compute take off and landing distance and run considering weather conditions.", "REST Service");
-		Component aircraftDB = aircraftManagerWebApp.addComponent("Aircraft Performance DB",
-				"Database that holds the aircraft specifications", "Database");
-		Component aircraftManagerUI = aircraftManagerWebApp.addComponent("Aircraft Manager UI",
-				"Web UI where the user can create, edit and view aircraft specifications", "Web-Client");
-		weightAndBalanceComputer.uses(aircraftSpecificationService, "Get aircraft specification");
-		takeOffAndLandingPerformanceComputer.uses(aircraftSpecificationService, "Get aircraft specification");
-		aircraftSpecificationService.uses(aircraftDB, "Get/Store aircraft specification");
-		aircraftManagerUI.uses(aircraftSpecificationService, "Get/Store aircraft specification");
+				"Service to compute take off and landing distance and run considering weather conditions.");
+		Component aircraftManagerUI = aircraftManagerWebApp.addComponent("Aircraft Editor UI",
+				"Web UI where the user can create, edit and view aircraft specifications", "Angular Component");
+		weightAndBalanceComputer.uses(aircraftSpecificationRepository, "Get aircraft specification");
+		takeOffAndLandingPerformanceComputer.uses(aircraftSpecificationRepository, "Get aircraft specification");
+		aircraftSpecificationRepository.uses(aircraftSpecificationRepository, "Get/Store aircraft specification");
+		aircraftManagerUI.uses(aircraftSpecificationRepository, "Get/Store aircraft specification");
 		pilot.uses(aircraftManagerUI, "Create/Edit aircraft specification");
 	}
 
@@ -66,7 +64,7 @@ public class AircraftManagerWebAppBuilder {
 	public void setFlightPlanningWebApp(@Nullable Container flightPlanningWebApp) {
 		this.flightPlanningWebApp = flightPlanningWebApp;
 		if (flightPlanningWebApp != null) {
-			flightPlanningWebApp.uses(aircraftSpecificationService, "Get aircraft climb, cruise, descent performance");
+			flightPlanningWebApp.uses(aircraftSpecificationRepository, "Get aircraft climb, cruise, descent performance");
 			flightPlanningWebApp.uses(weightAndBalanceComputer, "Get weight and balance for used fuel");
 			flightPlanningWebApp.uses(takeOffAndLandingPerformanceComputer, "Get take-off and landing performance for weather");
 		}
@@ -86,7 +84,7 @@ public class AircraftManagerWebAppBuilder {
 	 * @param views the views to add the context view to.
 	 */
 	public void buildViews(@Nonnull ViewSet views) {
-		ComponentView componentView = views.createComponentView(aircraftManagerWebApp, "Aircraft Manager Web App",
+		ComponentView componentView = views.createComponentView(aircraftManagerWebApp, "Pre-Flight - Aircraft Manager - Components",
 				"Web app content overview");
 		componentView.add(pilot);
 		if (flightPlanningWebApp != null) {
