@@ -80,13 +80,7 @@ export class FlightEditorComponent implements OnInit {
     return this.tripManager.findLoadedRouteSegment(fromPointId, toPointId);
   }
 
-  save() {
-    this.flightService.saveFlight(this.flight).subscribe();
-    // save only those route segments that this flight defines
-    for (let i = 0; i < this.flight.pointIds.length - 1; i++) {
-      this.routeSegmentService.saveRouteSegment(
-        this.findLoadedRouteSegment(this.flight.pointIds[i], this.flight.pointIds[i + 1])).subscribe();
-    }
+  private saveTrips() {
     const replies: Observable<object>[] = [];
     for (const trip of this.tripList) {
       if (trip.deleted) {
@@ -98,10 +92,36 @@ export class FlightEditorComponent implements OnInit {
         replies.push(this.tripService.createTrip(trip));
       }
     }
-    forkJoin(replies).subscribe(() => {
-      this.loadTripList();
-      this.selectTrip('0');
+    return replies;
+  }
+
+  private performSave() {
+    this.flightService.saveFlight(this.flight).subscribe(() => {
+      this.flightService.getFlightByName(this.flight.name).subscribe((reloadedFlight) => {
+        this.flight._links = reloadedFlight._links;
+        // save only those route segments that this flight defines
+        for (let i = 0; i < this.flight.pointIds.length - 1; i++) {
+          this.routeSegmentService.saveRouteSegment(
+            this.findLoadedRouteSegment(this.flight.pointIds[i], this.flight.pointIds[i + 1])).subscribe();
+        }
+        forkJoin(this.saveTrips()).subscribe(() => {
+          this.loadTripList();
+          this.selectTrip('0');
+        });
+      });
     });
+  }
+
+  save() {
+    if (!this.flight.name) {
+      alert('Flight must have a name to be saved. Please enter a name.');
+      return;
+    }
+    if (this.flight.name.length === 0) {
+      alert('Flight cannot be saved with empty name. Please enter a name.');
+      return;
+    }
+    this.performSave();
   }
 
   insertPoint(index: number) {

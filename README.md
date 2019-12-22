@@ -12,11 +12,14 @@ Have a look at the architecture documentation in the de.rdnp.preflight.architect
 
 ## How to build and run Pre-Flight on my machine?
 
-Simply start the maven build within the project de.rdnp.preflight.flightplanner with "verify" goal. It will generate and test a jar in the target folder of this project. This jar can then be run. After this, type 
+### Build from sources
+Simply start the maven build within the project de.rdnp.preflight.flightplanner.build with "verify" goal. It will generate and test a jar in the target folder of the de.rdnp.preflight.flightplanner project. This jar can then be run. Once it is up, type 
 
     http://localhost:8080 
 
 into your browser's address bar.
+
+This application cannot be accessed from other network nodes due to the repository location. If you want a jar that can be accessed by other nodes, you need to first change the repositoryUrl property in environment.prod.ts in de.rdnp.preflight.flightplanner.webui to the node where the Jar will be deployed later. After this, you need to re-run the build.
 
 ## How to use Pre-Flight?
 

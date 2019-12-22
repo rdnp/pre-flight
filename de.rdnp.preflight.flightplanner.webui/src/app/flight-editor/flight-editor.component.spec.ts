@@ -122,6 +122,19 @@ describe('FlightEditorComponent', () => {
     expect(createSpy).toHaveBeenCalled();
   });
 
+  it('should reject a flight being saved with no name', async () => {
+    await fixture.whenStable();
+    const flightService = fixture.debugElement.injector.get(FlightService);
+    component.flight.name = '';
+    const createSpy = spyOn(flightService, 'saveFlight').and.callThrough();
+
+    component.save();
+    component.flight.name = undefined;
+    component.save();
+
+    expect(createSpy).toHaveBeenCalledTimes(0);
+  });
+
   it('should save route segments from a flight on saving the flight', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
@@ -138,6 +151,7 @@ describe('FlightEditorComponent', () => {
 
     // now save the flight
     component.save();
+    await fixture.whenStable();
 
     // flight has two route segments to be saved
     expect(saveRouteSpy).toHaveBeenCalledTimes(2);

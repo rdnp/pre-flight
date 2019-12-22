@@ -11,7 +11,7 @@
 
 	<groupId>de.rdnp.preflight</groupId>
 	<artifactId>de.rdnp.preflight.flightplanner</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0</version>
 
 	<dependencies>
 		<dependency>
