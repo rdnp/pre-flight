@@ -1,21 +1,14 @@
 package de.rdnp.preflight.test;
 
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
 public class Messages {
-	private static final String BUNDLE_NAME = "de.rdnp.preflight.test.messages"; //$NON-NLS-1$
-
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
-
-	private Messages() {
-	}
 
 	public static String getString(String key) {
-		try {
-			return RESOURCE_BUNDLE.getString(key);
-		} catch (MissingResourceException e) {
-			return '!' + key + '!';
+		switch (key) {
+		case "preflight.test.chrome.driver.path":
+			return "../chromedriver/chromedriver.exe";
+		case "preflight.test.server.url":
+			return "http://localhost:8080";
 		}
+		return "";
 	}
 }

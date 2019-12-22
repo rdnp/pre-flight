@@ -132,7 +132,8 @@ public class CreateFlightTest {
 		String flightName = "Flight to Schwäbisch Hall_" + System.currentTimeMillis();
 		enterFlightInformation(flightName);
 		saveFlightAndReturn();
-		assertTrue("Flight be shown in flight list before deletion.", this.driver.getPageSource().contains(flightName));
+		
+		assertTrue("Flight should be shown in flight list before deletion.", this.driver.getPageSource().contains(flightName));
 
 		String linkId = this.driver.findElement(By.xpath("//a[text()='" + flightName + " (EDTQ -> EDTY)']"))
 				.getAttribute("id");

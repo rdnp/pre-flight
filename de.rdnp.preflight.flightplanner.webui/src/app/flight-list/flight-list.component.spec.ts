@@ -6,12 +6,15 @@ import { of } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { TripService } from '../services/trip.service';
+import { Flight } from 'src/data.model';
 
 class MockFlightService extends FlightService {
   getFlights() {
-    const result = JSON.parse(
+    const result: Flight[] = JSON.parse(
       '[{ "name": "Trip to Düsseldorf","aircraftType": "C172", "origin": "EDTQ","destination": "EDDL","alternate": "EDDK"  }' +
       ',{ "name": "Trip to Berlin","aircraftType": "C172", "origin": "EDTQ","destination": "EDDB","alternate": "EDDT" }]');
+    result[1]._links =
+      JSON.parse('{"self" : {"href" : "http://localhost:8080/flights/4"}, "flight" : { "href" : "http://localhost:8080/flights/4" } }');
     return of(result);
   }
 
@@ -70,13 +73,17 @@ describe('FlightListComponent', () => {
     const deleteTripSpy = spyOn(tripService, 'deleteAllTripsForFlight').and.callThrough();
     const getFlightsSpy = spyOn(flightService, 'getFlights').and.callThrough();
 
-    component.deleteFlight('testFlightName');
+    component.deleteFlight('Trip to Berlin');
 
-    expect(deleteSpy).toHaveBeenCalledWith('testFlightName');
-    expect(deleteTripSpy).toHaveBeenCalledWith('testFlightName');
+    expect(deleteSpy).toHaveBeenCalledWith('Trip to Berlin');
+    expect(deleteTripSpy).toHaveBeenCalledWith('4');
 
     await fixture.whenStable();
     expect(getFlightsSpy).toHaveBeenCalledTimes(1);
+
+    component.deleteFlight('testFlight');
+    expect(deleteTripSpy).toHaveBeenCalledWith(undefined);
+
   });
 
 });

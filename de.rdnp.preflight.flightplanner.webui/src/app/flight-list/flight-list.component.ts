@@ -33,19 +33,27 @@ export class FlightListComponent implements OnInit {
     return this.internalFlights;
   }
 
+  private lookupFlightId(name: string) {
+    const flightWithName = this.internalFlights.filter((flight) => flight.name === name);
+    if (flightWithName.length > 0) {
+      return flightWithName[0]._links.flight.href.substr(flightWithName[0]._links.flight.href.lastIndexOf('/') + 1);
+    }
+    return undefined;
+  }
+
   public deleteFlight(name: string) {
     const deleteActions: Observable<object>[] = [];
     deleteActions.push(this.flightService.deleteFlight(name));
-    deleteActions.push(this.tripService.deleteAllTripsForFlight(name));
+    deleteActions.push(this.tripService.deleteAllTripsForFlight(this.lookupFlightId(name)));
     forkJoin(deleteActions).subscribe(
-        () => {
-          this.loadFlights();
-        },
-        error => {
-          console.log(error);
-          this.loadFlights();
-        }
-      );
+      () => {
+        this.loadFlights();
+      },
+      error => {
+        console.log(error);
+        this.loadFlights();
+      }
+    );
     // Note. REST Response is discarded
   }
 
