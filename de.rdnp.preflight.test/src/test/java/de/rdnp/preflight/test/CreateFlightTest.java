@@ -11,6 +11,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class CreateFlightTest {
 
@@ -32,13 +34,7 @@ public class CreateFlightTest {
 			// we are in Flight Editor, so navigate back to main page
 			this.driver.findElement(By.xpath("//button[@tabindex=0]")).click();
 		}
-		
-		// delete all generated flights on the system under test
-		while (driver.getPageSource().contains("Delete")) {
-			this.driver.findElement(By.xpath("//button[text()=' Delete ']")).click();
-			// find create button (wait for page reload)
-			this.driver.findElement(By.xpath("//button[@color=\"primary\"]"));
-		}
+
 		// close web driver
 		driver.close();
 	}
@@ -52,14 +48,35 @@ public class CreateFlightTest {
 		String flightName = "Flight to Schwäbisch Hall_" + System.currentTimeMillis();
 		enterFlightInformation(flightName);
 
-		saveFlightAndReturn();
-
-		assertTrue("The flight list should contain the newly created flight's name.",
-				this.driver.getPageSource().contains(flightName));
+		saveFlightAndReturn(flightName);
+		By linkToFlight = waitForLink(flightName);
 
 		// re-open flight to check if parameters are still there.
 		navigateToFlightFirstTrip(flightName);
 		checkAllFlightAndTripDetails(flightName);
+
+		// delete created flight
+		saveFlightAndReturn(flightName);
+		linkToFlight = waitForLink(flightName);
+		deleteFlight(linkToFlight);
+	}
+
+	private By waitForLink(String flightName) {
+		WebDriverWait waitForLink = new WebDriverWait(driver, 5);
+		By linkToFlight = By.xpath("//a[text()='" + flightName + " (EDTQ -> EDTY)']");
+		waitForLink.until(ExpectedConditions.elementToBeClickable(linkToFlight));
+		assertTrue("The flight list should contain the newly created flight's name.",
+				this.driver.getPageSource().contains(flightName));
+		return linkToFlight;
+	}
+
+	private void deleteFlight(By linkToFlight) {
+		String flightRowStringContent = this.driver.findElement(linkToFlight).getAttribute("id");
+		By flightDeleteButton = By
+				.id("flight-row-delete" + flightRowStringContent.substring(flightRowStringContent.lastIndexOf("-")));
+		WebDriverWait waitForDelete = new WebDriverWait(driver, 5);
+		waitForDelete.until(ExpectedConditions.visibilityOfElementLocated(flightDeleteButton));
+		driver.findElement(flightDeleteButton).click();
 	}
 
 	/**
@@ -86,9 +103,14 @@ public class CreateFlightTest {
 
 		checkDerivedFlightRouteInformation();
 
-		saveFlightAndReturn();
+		saveFlightAndReturn(flightName);
 		navigateToFlightFirstTrip(flightName);
 		checkDerivedFlightRouteInformation();
+
+		// delete created flight
+		saveFlightAndReturn(flightName);
+		By linkToFlight = waitForLink(flightName);
+		deleteFlight(linkToFlight);
 	}
 
 	/**
@@ -101,7 +123,7 @@ public class CreateFlightTest {
 	public void editFlightRoute_AccordingToUserGuideSavingInBetween_FlightContainsFlightRoute() {
 		String flightName = "Flight to Schwäbisch Hall_" + System.currentTimeMillis();
 		enterFlightInformation(flightName);
-		saveFlightAndReturn();
+		saveFlightAndReturn(flightName);
 		navigateToFlightFirstTrip(flightName);
 		checkAllFlightAndTripDetails(flightName);
 
@@ -116,9 +138,14 @@ public class CreateFlightTest {
 
 		checkDerivedFlightRouteInformation();
 
-		saveFlightAndReturn();
+		saveFlightAndReturn(flightName);
 		navigateToFlightFirstTrip(flightName);
 		checkDerivedFlightRouteInformation();
+		
+		// delete created flight
+		saveFlightAndReturn(flightName);
+		By linkToFlight = waitForLink(flightName);
+		deleteFlight(linkToFlight);
 	}
 
 	/**
@@ -131,15 +158,20 @@ public class CreateFlightTest {
 	public void createAndDeleteAFlight_FlightAsInUserGuide_FlightNoLongerShown() {
 		String flightName = "Flight to Schwäbisch Hall_" + System.currentTimeMillis();
 		enterFlightInformation(flightName);
-		saveFlightAndReturn();
-		
-		assertTrue("Flight should be shown in flight list before deletion.", this.driver.getPageSource().contains(flightName));
+		saveFlightAndReturn(flightName);
 
-		String linkId = this.driver.findElement(By.xpath("//a[text()='" + flightName + " (EDTQ -> EDTY)']"))
-				.getAttribute("id");
+		WebDriverWait waitForLink = new WebDriverWait(driver, 5);
+		By linkToFlight = By.xpath("//a[text()='" + flightName + " (EDTQ -> EDTY)']");
+		waitForLink.until(ExpectedConditions.elementToBeClickable(linkToFlight));
+
+		assertTrue("Flight should be shown in flight list before deletion.",
+				this.driver.getPageSource().contains(flightName));
+
+		String linkId = this.driver.findElement(linkToFlight).getAttribute("id");
 		this.driver.findElement(By.id("flight-row-delete" + linkId.substring(linkId.lastIndexOf('-')))).click();
-		// find create button (wait for page reload)
-		this.driver.findElement(By.xpath("//button[@color=\"primary\"]"));
+
+		WebDriverWait waitForLinkToBeRemoved = new WebDriverWait(driver, 5);
+		waitForLinkToBeRemoved.until(ExpectedConditions.invisibilityOfElementLocated(linkToFlight));
 
 		assertFalse("Flight should no longer be shown after deletion.",
 				this.driver.getPageSource().contains(flightName));
@@ -210,9 +242,12 @@ public class CreateFlightTest {
 		this.driver.findElement(By.id("point-name-4")).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE,
 				Keys.BACK_SPACE);
 		this.driver.findElement(By.id("point-name-4")).sendKeys("EDTH");
-		this.driver.findElement(By.id("route-msa-3")).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE,
+		WebDriverWait waitForElementAdded = new WebDriverWait(driver, 5);
+		By msaInput = By.id("route-msa-3");
+		waitForElementAdded.until(ExpectedConditions.visibilityOfElementLocated(msaInput));
+		this.driver.findElement(msaInput).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE,
 				Keys.BACK_SPACE);
-		this.driver.findElement(By.id("route-msa-3")).sendKeys("3300");
+		this.driver.findElement(msaInput).sendKeys("3300");
 		this.driver.findElement(By.id("route-tc-3")).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE,
 				Keys.BACK_SPACE);
 		this.driver.findElement(By.id("route-tc-3")).sendKeys("160");
@@ -222,6 +257,9 @@ public class CreateFlightTest {
 	}
 
 	private void enterRouteFromPattonvilleToSchwaebischHall() {
+		WebDriverWait waitForInputs = new WebDriverWait(driver, 5);
+		waitForInputs.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.id("route-d-2")));
+
 		this.driver.findElement(By.id("point-name-1")).sendKeys("LBU");
 		this.driver.findElement(By.id("point-name-2")).sendKeys("DKB");
 		this.driver.findElement(By.id("route-msa-0")).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE,
@@ -267,14 +305,23 @@ public class CreateFlightTest {
 	}
 
 	private void navigateToFlightFirstTrip(String flightName) {
-		this.driver.findElement(By.xpath("//a[text()='" + flightName + " (EDTQ -> EDTY)']")).click();
-		assertEquals(flightName, this.driver.findElement(By.id("save-flight-name")).getAttribute("value"));
-		this.driver.findElement(By.id("trip-select")).sendKeys(Keys.DOWN);
+		WebDriverWait waitForLink = new WebDriverWait(driver, 5);
+		By linkToFlight = By.xpath("//a[text()='" + flightName + " (EDTQ -> EDTY)']");
+		waitForLink.until(ExpectedConditions.elementToBeClickable(linkToFlight));
+		this.driver.findElement(linkToFlight).click();
+		WebDriverWait waitForInput = new WebDriverWait(driver, 5);
+		By tripSelector = By.id("trip-select");
+		waitForInput.until(ExpectedConditions.elementToBeClickable(tripSelector));
+		this.driver.findElement(tripSelector).sendKeys(Keys.DOWN);
 	}
 
 	private void enterFlightInformation(String flightName) {
 		this.driver.findElement(By.xpath("//button[@color=\"primary\"]")).click();
-		this.driver.findElement(By.id("flight-origin")).sendKeys("EDTQ");
+
+		WebDriverWait waitForPageReady = new WebDriverWait(driver, 5);
+		By flightOriginInput = By.id("flight-origin");
+		waitForPageReady.until(ExpectedConditions.visibilityOfElementLocated(flightOriginInput));
+		this.driver.findElement(flightOriginInput).sendKeys("EDTQ");
 		this.driver.findElement(By.id("flight-destination")).sendKeys("EDTY");
 		this.driver.findElement(By.id("flight-alternate")).sendKeys("EDTH");
 		this.driver.findElement(By.id("point-name-0")).sendKeys("EDTQ");
@@ -286,8 +333,11 @@ public class CreateFlightTest {
 		this.driver.findElement(By.id("trip-ac-type")).sendKeys("C172");
 	}
 
-	private void saveFlightAndReturn() {
+	private void saveFlightAndReturn(String flightName) {
 		this.driver.findElement(By.id("save-flight-button")).click();
-		this.driver.findElement(By.xpath("//button[@tabindex=0]")).click();
+		By saveButton = By.xpath("//button[@tabindex=0]");
+		WebDriverWait waitForSaveButton = new WebDriverWait(driver, 5);
+		waitForSaveButton.until(ExpectedConditions.elementToBeClickable(saveButton));
+		this.driver.findElement(saveButton).click();
 	}
 }
