@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -16,6 +17,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class CreateFlightTest {
 
+	private static final int WAIT_TIMEOUT_SECONDS = 3;
+	private static final int NUMBER_OF_RETRIES = 3;
 	private WebDriver driver;
 
 	@Before
@@ -62,9 +65,16 @@ public class CreateFlightTest {
 	}
 
 	private By waitForLink(String flightName) {
-		WebDriverWait waitForLink = new WebDriverWait(driver, 5);
 		By linkToFlight = By.xpath("//a[text()='" + flightName + " (EDTQ -> EDTY)']");
-		waitForLink.until(ExpectedConditions.elementToBeClickable(linkToFlight));
+		for (int i = 1; i <= NUMBER_OF_RETRIES; i++) {
+			try {
+				WebDriverWait waitForLink = new WebDriverWait(driver, WAIT_TIMEOUT_SECONDS);
+				waitForLink.until(ExpectedConditions.elementToBeClickable(linkToFlight));
+			} catch (TimeoutException e) {
+				System.out.println("Attempt #" + i + " failed, retrying...");
+				driver.get(Messages.getString("preflight.test.server.url"));
+			}
+		}
 		assertTrue("The flight list should contain the newly created flight's name.",
 				this.driver.getPageSource().contains(flightName));
 		return linkToFlight;
@@ -144,7 +154,7 @@ public class CreateFlightTest {
 		// delete first created flight
 		linkToFlight = waitForLink(flightName);
 		deleteFlight(linkToFlight);
-		
+
 		// check new flight information
 		By linkToNewFlight = waitForLink(newFlightName);
 		navigateToFlightFirstTrip(newFlightName);
@@ -381,10 +391,10 @@ public class CreateFlightTest {
 		}
 		this.driver.findElement(By.id("save-flight-name")).sendKeys(flightName);
 		this.driver.findElement(By.id("save-flight-button")).click();
-		By saveButton = By.xpath("//button[@tabindex=0]");
+		By returnButton = By.xpath("//button[@tabindex=0]");
 		WebDriverWait waitForSaveButton = new WebDriverWait(driver, 5);
-		waitForSaveButton.until(ExpectedConditions.elementToBeClickable(saveButton));
-		this.driver.findElement(saveButton).click();
+		waitForSaveButton.until(ExpectedConditions.elementToBeClickable(returnButton));
+		this.driver.findElement(returnButton).click();
 	}
 
 }
