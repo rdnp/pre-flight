@@ -87,7 +87,7 @@ public class CreateFlightTest {
 	 * Test case does both tutorials in a row without saving.
 	 */
 	@Test
-	public void editFlightRoute_AccordingToUserGuideSavingAtEnd_FlightContainsFlightRoute() {
+	public void editFlightRouteSavingAtEnd_FlightAsInUserGuide_FlightContainsFlightRoute() {
 		String flightName = "Flight to Schwäbisch Hall_" + System.currentTimeMillis();
 		enterFlightInformation(flightName);
 		checkAllFlightAndTripDetails(flightName);
@@ -114,13 +114,55 @@ public class CreateFlightTest {
 	}
 
 	/**
+	 * Automation of renaming a flight containing some trip data by saving it under
+	 * another name and then deleting the other flight.
+	 */
+	@Test
+	public void renameFlight_FlightAsInUserGuide_FlightContainsFlightAndTrips() {
+		String flightName = "Flight to Schwäbisch Hall_" + System.currentTimeMillis();
+		String newFlightName = "Flight to Schwäbisch Hall_NEW_" + System.currentTimeMillis();
+		enterFlightInformation(flightName);
+		checkAllFlightAndTripDetails(flightName);
+
+		// add two points
+		this.driver.findElement(By.xpath("//button[text()='+']")).click();
+		this.driver.findElement(By.xpath("//button[text()='+']")).click();
+
+		// set point and route details
+		enterRouteFromPattonvilleToSchwaebischHall();
+		addAlternateSegmentToHeubach();
+		addTripInformation();
+		checkDerivedFlightRouteInformation();
+		saveFlightAndReturn(flightName);
+
+		// check flight information, save under new name
+		By linkToFlight = waitForLink(flightName);
+		navigateToFlightFirstTrip(flightName);
+		checkDerivedFlightRouteInformation();
+		saveFlightAndReturn(newFlightName);
+
+		// delete first created flight
+		linkToFlight = waitForLink(flightName);
+		deleteFlight(linkToFlight);
+		
+		// check new flight information
+		By linkToNewFlight = waitForLink(newFlightName);
+		navigateToFlightFirstTrip(newFlightName);
+		checkDerivedFlightRouteInformation();
+		saveFlightAndReturn(newFlightName);
+
+		// delete new created flight
+		deleteFlight(linkToNewFlight);
+	}
+
+	/**
 	 * Automation of introduction scenario according to user guide:
 	 * https://github.com/rdnp/pre-flight/wiki/Route-Planning:-First-Steps
 	 * <p>
 	 * Saves the flight once before starting the route editing.
 	 */
 	@Test
-	public void editFlightRoute_AccordingToUserGuideSavingInBetween_FlightContainsFlightRoute() {
+	public void editFlightRouteSavingInBetween_FlightAsInUserGuide_FlightContainsFlightRoute() {
 		String flightName = "Flight to Schwäbisch Hall_" + System.currentTimeMillis();
 		enterFlightInformation(flightName);
 		saveFlightAndReturn(flightName);
@@ -141,7 +183,7 @@ public class CreateFlightTest {
 		saveFlightAndReturn(flightName);
 		navigateToFlightFirstTrip(flightName);
 		checkDerivedFlightRouteInformation();
-		
+
 		// delete created flight
 		saveFlightAndReturn(flightName);
 		By linkToFlight = waitForLink(flightName);
@@ -334,10 +376,15 @@ public class CreateFlightTest {
 	}
 
 	private void saveFlightAndReturn(String flightName) {
+		for (int i = 0; i < 100; i++) {
+			this.driver.findElement(By.id("save-flight-name")).sendKeys(Keys.BACK_SPACE);
+		}
+		this.driver.findElement(By.id("save-flight-name")).sendKeys(flightName);
 		this.driver.findElement(By.id("save-flight-button")).click();
 		By saveButton = By.xpath("//button[@tabindex=0]");
 		WebDriverWait waitForSaveButton = new WebDriverWait(driver, 5);
 		waitForSaveButton.until(ExpectedConditions.elementToBeClickable(saveButton));
 		this.driver.findElement(saveButton).click();
 	}
+
 }

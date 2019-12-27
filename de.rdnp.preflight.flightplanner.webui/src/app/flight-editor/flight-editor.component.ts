@@ -86,6 +86,7 @@ export class FlightEditorComponent implements OnInit {
       if (trip.deleted) {
         replies.push(this.tripService.deleteTrip(trip));
       } else if (trip.flightId) {
+        trip.flightId = this.flight._links.flight.href.substr(this.flight._links.flight.href.lastIndexOf('/') + 1);
         replies.push(this.tripService.updateTrip(trip));
       } else if (!this.tripService.isEmptyTrip(trip)) {
         trip.flightId = this.flight._links.flight.href.substr(this.flight._links.flight.href.lastIndexOf('/') + 1);

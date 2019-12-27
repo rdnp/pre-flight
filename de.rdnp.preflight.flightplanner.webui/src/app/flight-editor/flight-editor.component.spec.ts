@@ -195,9 +195,9 @@ describe('FlightEditorComponent', () => {
     spyOn(tripService, 'updateTrip').and.returnValue(of({}));
     spyOn(tripService, 'deleteTrip').and.returnValue(of({}));
     const fakeTrips = [];
-    fakeTrips.push(new Trip('1', '', '', '', '', [], undefined));
+    fakeTrips.push(new Trip('1', '2018-03-14', '', '', '', [], undefined));
     fakeTrips.push(new Trip('2', '2018-03-15', '12:23', 'DESAE', 'C172', [new TripSegment()], undefined));
-    fakeTrips.push(new Trip('3', '', '', '', '', [], undefined));
+    fakeTrips.push(new Trip('3', '2018-03-16', '', '', '', [], undefined));
     component.tripList = fakeTrips;
     spyOn(tripService, 'findAllTripsForFlight').and.returnValue(of(fakeTrips));
 
@@ -208,9 +208,9 @@ describe('FlightEditorComponent', () => {
     await fixture.whenStable();
     expect(component.tripList.length).toBe(4);
     expect(component.tripList[0].flightId).toBe(undefined); // default for new trip
-    expect(component.tripList[1].flightId).toBe('1'); // first in fakeTrips
-    expect(component.tripList[2].flightId).toBe('2');
-    expect(component.tripList[3].flightId).toBe('3');
+    expect(component.tripList[1].dateOfFlight).toBe('2018-03-14'); // first in fakeTrips
+    expect(component.tripList[2].dateOfFlight).toBe('2018-03-15');
+    expect(component.tripList[3].dateOfFlight).toBe('2018-03-16');
   });
 
   it('should load all route segments between points of a flight', async () => {
