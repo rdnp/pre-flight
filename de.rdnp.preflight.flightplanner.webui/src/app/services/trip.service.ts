@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TripRepositoryResponse, Trip, TripSegment } from 'src/data.model';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class TripService {
   constructor(private http: HttpClient) { }
 
   findAllTripsForFlight(flightId: string) {
-    const queryUrl = window.location.protocol + '//' + window.location.hostname + ':8080'
+    const queryUrl = window.location.protocol + '//' + window.location.hostname + ':' + environment.repositoryPort
       + '/trips/search/findByFlightId?id=' + parseFloat(flightId).toFixed(0);
     return this.http.get(queryUrl).pipe(
       map((response: TripRepositoryResponse) => {
@@ -21,7 +22,7 @@ export class TripService {
   }
 
   deleteAllTripsForFlight(flightId: string) {
-    const queryUrl = window.location.protocol + '//' + window.location.hostname + ':8080'
+    const queryUrl = window.location.protocol + '//' + window.location.hostname + ':' + environment.repositoryPort
       + '/trips/search/deleteByFlightId?id=' + flightId;
     return this.http.get(queryUrl);
   }
@@ -53,7 +54,7 @@ export class TripService {
   }
 
   createTrip(trip: Trip) {
-    return this.http.put(window.location.protocol + '//' + window.location.hostname + ':8080'
+    return this.http.put(window.location.protocol + '//' + window.location.hostname + ':' + environment.repositoryPort
       + '/trips/9223372036854775807', this.removeParentReferences(trip));
   }
 
