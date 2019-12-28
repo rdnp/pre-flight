@@ -1,0 +1,3 @@
+pkill -f 'java -jar'
+bash -c "java -jar -Xmx256M -Dspring.config.location=./application.properties de.rdnp.flightplanner-0.1.1.jar >log.txt >err.txt &"
+exit
