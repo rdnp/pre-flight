@@ -162,6 +162,7 @@ public class CreateFlightTest {
 		saveFlightAndReturn(newFlightName);
 
 		// delete new created flight
+		linkToNewFlight = waitForLink(newFlightName);
 		deleteFlight(linkToNewFlight);
 	}
 

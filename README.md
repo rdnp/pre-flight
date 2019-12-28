@@ -19,7 +19,7 @@ Simply start the maven build within the project de.rdnp.preflight.flightplanner.
 
 into your browser's address bar.
 
-This application cannot be accessed from other network nodes due to the repository location. If you want a jar that can be accessed by other nodes, you need to first change the repositoryUrl property in environment.prod.ts in de.rdnp.preflight.flightplanner.webui to the node where the Jar will be deployed later. After this, you need to re-run the build.
+Note. This application currently does not support the repository to be placed on another network node than the client and it does not support to be run on another port than port 8080.
 
 ## How to use Pre-Flight?
 

@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { map, concatMap } from 'rxjs/operators';
 import { RouteSegmentRepositoryResponse, RouteSegment } from 'src/data.model';
 import { of } from 'rxjs';
-import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +16,8 @@ export class RouteSegmentService {
    * Will return a new empty route segment if it finds no inverse route segment.
    */
   private deriveRouteSegmentFromInverse(sourcePointId: string, targetPointId: string) {
-    const inverseQueryUrl = environment.repositoryUrl + '/route-segments/search/findBySourcePointIdAndTargetPointId?from='
+    const inverseQueryUrl = window.location.protocol + '//' + window.location.hostname + ':8080'
+      + '/route-segments/search/findBySourcePointIdAndTargetPointId?from='
       + targetPointId + '&to=' + sourcePointId;
     return this.http.get(inverseQueryUrl).pipe(
       // unwrap the response
@@ -44,7 +44,8 @@ export class RouteSegmentService {
   }
 
   findRouteSegment(sourcePointId: string, targetPointId: string) {
-    const queryUrl = environment.repositoryUrl + '/route-segments/search/findBySourcePointIdAndTargetPointId?from='
+    const queryUrl = window.location.protocol + '//' + window.location.hostname + ':8080'
+      + '/route-segments/search/findBySourcePointIdAndTargetPointId?from='
       + sourcePointId + '&to=' + targetPointId;
     return this.http.get(queryUrl).pipe(
       // unwrap the response
@@ -63,7 +64,8 @@ export class RouteSegmentService {
         return this.http.put(repositoryRouteSegment._links.self.href, toSave);
       } else {
         // create new route segment
-        return this.http.put(environment.repositoryUrl + '/route-segments/9223372036854775807', toSave);
+        return this.http.put(window.location.protocol + '//' + window.location.hostname + ':8080'
+          + '/route-segments/9223372036854775807', toSave);
       }
     }));
   }

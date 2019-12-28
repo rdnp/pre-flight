@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Flight, FlightRepositoryResponse } from 'src/data.model';
 import { map, concatMap } from 'rxjs/operators';
-import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +12,7 @@ export class FlightService {
   }
 
   public getFlights() {
-    return this.http.get(environment.repositoryUrl + '/flights').pipe(
+    return this.http.get(window.location.protocol + '//' + window.location.hostname + ':8080' + '/flights').pipe(
       map((response: FlightRepositoryResponse) => {
         return response._embedded.flights;
       })
@@ -21,7 +20,7 @@ export class FlightService {
   }
 
   public getFlightByName(name: string) {
-    const queryUrl = environment.repositoryUrl + '/flights/search/findByName?name=' + name;
+    const queryUrl = window.location.protocol + '//' + window.location.hostname + ':8080' + '/flights/search/findByName?name=' + name;
     return this.http.get(queryUrl).pipe(
       // unwrap the flight
       map((response: FlightRepositoryResponse) => {
@@ -34,7 +33,7 @@ export class FlightService {
   }
 
   public deleteFlight(name: string) {
-    const queryUrl = environment.repositoryUrl + '/flights/search/deleteByName?name=' + name;
+    const queryUrl = window.location.protocol + '//' + window.location.hostname + ':8080' + '/flights/search/deleteByName?name=' + name;
     return this.http.get(queryUrl);
   }
 
@@ -43,7 +42,7 @@ export class FlightService {
       if (repositoryFlight.name.length > 0) {
         return this.http.put(repositoryFlight._links.self.href, flight);
       } else {
-        const createNewFlightUrl = environment.repositoryUrl + '/flights/9223372036854775807';
+        const createNewFlightUrl = window.location.protocol + '//' + window.location.hostname + ':8080' + '/flights/9223372036854775807';
         return this.http.put(createNewFlightUrl, flight);
       }
     }));
