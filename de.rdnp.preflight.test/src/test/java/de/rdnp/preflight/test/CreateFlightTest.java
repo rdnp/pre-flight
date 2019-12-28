@@ -279,6 +279,7 @@ public class CreateFlightTest {
 		this.driver.findElement(By.id("trip-edit-3")).click();
 		// add leg for climb
 		this.driver.findElement(By.id("trip-t-1")).sendKeys(Keys.BACK_SPACE);
+		new WebDriverWait(driver, WAIT_TIMEOUT_SECONDS).until(ExpectedConditions.visibilityOfElementLocated(By.id("trip-t-1.0")));
 		this.driver.findElement(By.id("trip-t-1.0")).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, "4");
 		this.driver.findElement(By.id("trip-edit-1.0")).click();
 		this.driver.findElement(By.id("trip-fcr-0")).sendKeys("16");
@@ -297,7 +298,7 @@ public class CreateFlightTest {
 		this.driver.findElement(By.id("point-name-4")).sendKeys("EDTH");
 		WebDriverWait waitForElementAdded = new WebDriverWait(driver, 5);
 		By msaInput = By.id("route-msa-3");
-		waitForElementAdded.until(ExpectedConditions.visibilityOfElementLocated(msaInput));
+		waitForElementAdded.until(ExpectedConditions.elementToBeClickable(msaInput));
 		this.driver.findElement(msaInput).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE,
 				Keys.BACK_SPACE);
 		this.driver.findElement(msaInput).sendKeys("3300");
