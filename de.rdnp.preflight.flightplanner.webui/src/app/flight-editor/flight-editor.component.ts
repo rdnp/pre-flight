@@ -8,7 +8,8 @@ import { TripComputerService } from '../services/trip-computer.service';
 import { TripManager } from './trip-manager';
 import { InputValidator } from './input-validator';
 import { TripService } from '../services/trip.service';
-import { Observable, forkJoin } from 'rxjs';
+import { SaveController } from './save-controller';
+import { FlightEditorInput } from './flight-editor-input';
 
 @Component({
   selector: 'app-flight-editor',
@@ -80,60 +81,24 @@ export class FlightEditorComponent implements OnInit {
     return this.tripManager.findLoadedRouteSegment(fromPointId, toPointId);
   }
 
-  private saveTrips() {
-    const replies: Observable<object>[] = [];
-    for (const trip of this.tripList) {
-      if (trip.deleted) {
-        replies.push(this.tripService.deleteTrip(trip));
-      } else if (trip.flightId) {
-        trip.flightId = this.flight._links.flight.href.substr(this.flight._links.flight.href.lastIndexOf('/') + 1);
-        replies.push(this.tripService.updateTrip(trip));
-      } else if (!this.tripService.isEmptyTrip(trip)) {
-        trip.flightId = this.flight._links.flight.href.substr(this.flight._links.flight.href.lastIndexOf('/') + 1);
-        replies.push(this.tripService.createTrip(trip));
-      }
-    }
-    return replies;
-  }
-
-  private performSave() {
-    this.flightService.saveFlight(this.flight).subscribe(() => {
-      this.flightService.getFlightByName(this.flight.name).subscribe((reloadedFlight) => {
-        this.flight._links = reloadedFlight._links;
-        // save only those route segments that this flight defines
-        for (let i = 0; i < this.flight.pointIds.length - 1; i++) {
-          this.routeSegmentService.saveRouteSegment(
-            this.findLoadedRouteSegment(this.flight.pointIds[i], this.flight.pointIds[i + 1])).subscribe();
-        }
-        forkJoin(this.saveTrips()).subscribe(() => {
-          this.loadTripList();
-          this.selectTrip('0');
-        });
-      });
-    });
-  }
-
   save() {
-    if (!this.flight.name) {
-      alert('Flight must have a name to be saved. Please enter a name.');
-      return;
-    }
-    if (this.flight.name.length === 0) {
-      alert('Flight cannot be saved with empty name. Please enter a name.');
-      return;
-    }
-    this.performSave();
+    const input = new FlightEditorInput(this.flight, this.tripList, this.routeSegments);
+    new SaveController(input, this.tripManager, this.flightService, this.tripService, this.routeSegmentService).createSaveAction()
+      .subscribe(() => {
+        this.loadTripList();
+        this.selectTrip('0');
+      });
   }
 
   insertPoint(index: number) {
     this.tripManager.insertPoint(index);
-    this.flight.pointIds = this.tripManager.pointIds;
+    this.flight.pointIds = this.tripManager.points;
     this.loadMissingRouteSegments();
   }
 
   removePoint(index: number) {
     this.tripManager.removePoint(index);
-    this.flight.pointIds = this.tripManager.pointIds;
+    this.flight.pointIds = this.tripManager.points;
     this.loadMissingRouteSegments();
   }
 

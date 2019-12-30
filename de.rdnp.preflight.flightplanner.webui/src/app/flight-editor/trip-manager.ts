@@ -20,6 +20,10 @@ export class TripManager {
         this.initializeAllTripSegments();
     }
 
+    get points() {
+        return this.pointIds;
+    }
+
     initializeAllTripSegments() {
         // we need at least two points...
         if (this.pointIds.length > 1) {
