@@ -172,9 +172,9 @@ describe('FlightEditorComponent', () => {
     // trip to create newly (undefined flight)
     fakeTrips.push(new Trip(undefined, '2018-03-15', '12:23', 'DESAE', 'C172', [new TripSegment()], undefined));
     // trip to update
-    fakeTrips.push(new Trip('3', '', '', '', '', [], undefined));
+    fakeTrips.push(new Trip('4', '', '', '', '', [], undefined));
     // trip to delete
-    const deletedTrip = new Trip('3', '', '', '', '', [], undefined);
+    const deletedTrip = new Trip('4', '', '', '', '', [], undefined);
     deletedTrip.deleted = true;
     fakeTrips.push(deletedTrip);
     component.tripList = fakeTrips;

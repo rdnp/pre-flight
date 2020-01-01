@@ -16,7 +16,7 @@ FOR /f %%i in ('dir /b *.jar') do set jarfile=%%i
 CD %~dp0
 
 plink -ssh -l %~1 -pw %~2 1b946d1.online-server.cloud "pkill -f 'java -jar'"
-plink -ssh -l %~1 -pw %~2 1b946d1.online-server.cloud "bash -c ""java -jar -Xmx256M -Dspring.config.location=./application.properties de.rdnp.preflight.flightplanner-0.1.1.jar >log.txt >err.txt &"""
+plink -ssh -l %~1 -pw %~2 1b946d1.online-server.cloud "bash -c ""java -jar -Xmx256M -Dspring.config.location=./application.properties %jarfile% >log.txt >err.txt &"""
 
 GOTO DONE
 

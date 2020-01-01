@@ -120,6 +120,7 @@ export class Flight {
         this.destination = destination;
         this.pointIds = pointIds;
         this.alternate = alternate;
+        this._links = _links;
     }
 }
 

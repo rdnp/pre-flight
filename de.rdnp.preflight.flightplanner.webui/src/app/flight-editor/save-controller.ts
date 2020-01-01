@@ -4,24 +4,27 @@ import { TripService } from '../services/trip.service';
 import { RouteSegmentService } from '../services/route-segment.service';
 import { FlightService } from '../services/flight.service';
 import { TripManager } from './trip-manager';
-import { map, concatMap } from 'rxjs/operators';
+import { concatMap } from 'rxjs/operators';
 
 export class SaveController {
 
     constructor(
         private input: FlightEditorInput, private tripManager: TripManager,
-        private flightService: FlightService, private tripService: TripService, private routeSegmentService: RouteSegmentService) { }
+        private flightService: FlightService, private tripService: TripService, private routeSegmentService: RouteSegmentService) {
+    }
 
     private saveTrips() {
         const replies: Observable<object>[] = [];
+        const flightId = this.input.flight._links.flight.href.substr(this.input.flight._links.flight.href.lastIndexOf('/') + 1);
         for (const trip of this.input.trips) {
-            if (trip.deleted) {
-                replies.push(this.tripService.deleteTrip(trip));
-            } else if (trip.flightId) {
-                trip.flightId = this.input.flight._links.flight.href.substr(this.input.flight._links.flight.href.lastIndexOf('/') + 1);
-                replies.push(this.tripService.updateTrip(trip));
+            if (parseFloat(trip.flightId) === parseFloat(flightId)) {
+                if (trip.deleted) {
+                    replies.push(this.tripService.deleteTrip(trip));
+                } else {
+                    replies.push(this.tripService.updateTrip(trip));
+                }
             } else if (!this.tripService.isEmptyTrip(trip)) {
-                trip.flightId = this.input.flight._links.flight.href.substr(this.input.flight._links.flight.href.lastIndexOf('/') + 1);
+                trip.flightId = flightId;
                 replies.push(this.tripService.createTrip(trip));
             }
         }

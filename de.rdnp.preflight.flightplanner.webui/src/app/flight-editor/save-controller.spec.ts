@@ -1,6 +1,13 @@
 import { SaveController } from './save-controller';
 import { FlightEditorInput } from './flight-editor-input';
 import { Flight, FlightLinks, Trip, RouteSegment, TripLinks, TripSegment } from 'src/data.model';
+import { async, TestBed } from '@angular/core/testing';
+import { FlightService } from '../services/flight.service';
+import { TripService } from '../services/trip.service';
+import { RouteSegmentService } from '../services/route-segment.service';
+import { TripManager } from './trip-manager';
+import { of } from 'rxjs';
+import { HttpClientModule } from '@angular/common/http';
 
 describe('SaveController', () => {
 
@@ -11,6 +18,13 @@ describe('SaveController', () => {
     function createDefaultTestFlight() {
         const links: FlightLinks = { flight: { href: 'http://test.flight/1' }, self: { href: 'http://test.flight/1' } };
         const testFlight = new Flight('Test Flight', 'EDTQ', 'EDTY', 'EDDS', ['EDTQ', 'LBU', 'DKB', 'EDTY', 'EDDS'],
+            links);
+        return testFlight;
+    }
+
+    function createChangedNameTestFlight() {
+        const links: FlightLinks = { flight: { href: 'http://test.flight/2' }, self: { href: 'http://test.flight/2' } };
+        const testFlight = new Flight('Test Flight With New Name', 'EDTQ', 'EDTY', 'EDDS', ['EDTQ', 'LBU', 'DKB', 'EDTY', 'EDDS'],
             links);
         return testFlight;
     }
@@ -28,7 +42,9 @@ describe('SaveController', () => {
         result.variation = -2;
         result.hourlyFuelConsumptionRate = 12;
         result.children = children;
-        result.children.forEach((child) => { child.parent = result; });
+        if (children !== undefined) {
+            result.children.forEach((child) => { child.parent = result; });
+        }
         return result;
     }
 
@@ -36,16 +52,35 @@ describe('SaveController', () => {
         return tripSegmentWithChildren(trueAirspeed, undefined);
     }
 
-    function createDefaultTestTrips() {
-        const testTrips: Trip[] = new Trip[2]();
+    function createModifiedExistingTestTrips() {
         const tripOneLinks: TripLinks = { trip: { href: 'http://test.trip/1' }, self: { href: 'http://test.trip/1' } };
         const tripOneSegments: TripSegment[] =
             [tripSegment(76), tripSegmentWithChildren(117, [childTripSegment(76, 4)]), tripSegment(117), tripSegment(117)];
-        testTrips[0] = new Trip('1', '29-12-2019', '12:00', 'DESAE', 'C172', tripOneSegments, tripOneLinks);
         const tripTwoSegments: TripSegment[] = [tripSegment(76), tripSegment(117), tripSegment(117), tripSegment(117)];
-        const tripTwoLinks: TripLinks = { trip: { href: 'http://test.trip/1' }, self: { href: 'http://test.trip/2' } };
-        testTrips[1] = new Trip('1', '29-12-2019', '12:00', 'DESAE', 'C172', tripTwoSegments, tripTwoLinks);
-        return testTrips;
+        const tripTwoLinks: TripLinks = { trip: { href: 'http://test.trip/2' }, self: { href: 'http://test.trip/2' } };
+        const tripThreeSegments: TripSegment[] =
+            [tripSegment(80), tripSegmentWithChildren(119, [childTripSegment(80, 4)]), tripSegment(119), tripSegment(119)];
+        const tripThreeLinks: TripLinks = { trip: { href: 'http://test.trip/3' }, self: { href: 'http://test.trip/3' } };
+        const result = [new Trip('1', '29-12-2019', '12:00', 'DESAE', 'C172', tripOneSegments, tripOneLinks),
+        new Trip('1', '29-12-2019', '12:00', 'DESAE', 'C172', tripTwoSegments, tripTwoLinks),
+        new Trip('1', '29-12-2019', '12:00', 'DESAE', 'C172', tripThreeSegments, tripThreeLinks),
+        new Trip(undefined, '', '', '', '', [new TripSegment(), new TripSegment(), new TripSegment()], undefined)];
+        result[1].deleted = true;
+        return result;
+    }
+
+    function createModifiedCreateNewTestTrips() {
+        const tripOneLinks: TripLinks = { trip: { href: 'http://test.trip/1' }, self: { href: 'http://test.trip/1' } };
+        const tripOneSegments: TripSegment[] =
+            [tripSegment(76), tripSegmentWithChildren(117, [childTripSegment(76, 4)]), tripSegment(117), tripSegment(117)];
+        const tripTwoSegments: TripSegment[] = [tripSegment(76), tripSegment(117), tripSegment(117), tripSegment(117)];
+        const tripThreeSegments: TripSegment[] =
+            [tripSegment(80), tripSegmentWithChildren(119, [childTripSegment(80, 4)]), tripSegment(119), tripSegment(119)];
+        const tripThreeLinks: TripLinks = { trip: { href: 'http://test.trip/3' }, self: { href: 'http://test.trip/3' } };
+        const result = [new Trip('1', '29-12-2019', '12:00', 'DESAE', 'C172', tripOneSegments, tripOneLinks),
+        new Trip('1', '29-12-2019', '12:00', 'DESAE', 'C172', tripThreeSegments, tripThreeLinks),
+        new Trip(undefined, '29-12-2019', '12:00', 'DESAE', 'C172', tripTwoSegments, undefined)];
+        return result;
     }
 
     function createDefaultTestRouteSegments() {
@@ -64,21 +99,106 @@ describe('SaveController', () => {
     }
 
     function createDefaultTestInput(): FlightEditorInput {
-        return new FlightEditorInput(createDefaultTestFlight(), createDefaultTestTrips(), createDefaultTestRouteSegments());
+        return new FlightEditorInput(createDefaultTestFlight(), createModifiedExistingTestTrips(), createDefaultTestRouteSegments());
     }
 
-    it('should save flight data of an already existing flight', () => {
-        // const save = new SaveController(createDefaultTestInput());
-        // save.save();
-        // TODO assert, based on current test cases for flight-editor.component.spec.ts
-    });
+    function createNewTripTestInput(): FlightEditorInput {
+        return new FlightEditorInput(createDefaultTestFlight(), createModifiedCreateNewTestTrips(), createDefaultTestRouteSegments());
+    }
 
-    it('should save flight data of a renamed flight under the new name', () => {
-        // const save = new SaveController(createDefaultTestInput());
-        // save.save();
-        // TODO assert
-    });
+    beforeEach(async(() => {
+        TestBed.configureTestingModule({
+            imports: [HttpClientModule],
+        });
+    }));
 
-    // TODO additional test cases for other cases of flights as needed
+    it('should save flight data of an already existing flight with existing trips modified',
+        async () => {
+            const flightService = TestBed.get(FlightService);
+            const tripService = TestBed.get(TripService);
+            const routeSegmentService = TestBed.get(RouteSegmentService);
+
+            const flightServiceSaveSpy = spyOn(flightService, 'saveFlight').and.returnValue(of({}));
+            const flightServiceLoadSpy = spyOn(flightService, 'getFlightByName').and.returnValue(of(createDefaultTestFlight()));
+            const tripServiceCreateSpy = spyOn(tripService, 'createTrip').and.returnValue(of({}));
+            const tripServiceUpdateSpy = spyOn(tripService, 'updateTrip').and.returnValue(of({}));
+            const tripServiceDeleteSpy = spyOn(tripService, 'deleteTrip').and.returnValue(of({}));
+            const routeSegmentServiceSaveSpy = spyOn(routeSegmentService, 'saveRouteSegment').and.returnValue(of({}));
+            const routeSegmentServiceFindSpy = spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({}));
+
+            const save = new SaveController(createDefaultTestInput(), new TripManager(createDefaultTestFlight(),
+                createDefaultTestRouteSegments(), createModifiedExistingTestTrips()[0]),
+                flightService, tripService, routeSegmentService);
+
+            save.createSaveAction().subscribe(() => {
+                expect(flightServiceSaveSpy).toHaveBeenCalledTimes(1);
+                expect(flightServiceLoadSpy).toHaveBeenCalledTimes(1);
+                expect(tripServiceCreateSpy).toHaveBeenCalledTimes(0);
+                expect(tripServiceUpdateSpy).toHaveBeenCalledTimes(2);
+                expect(tripServiceDeleteSpy).toHaveBeenCalledTimes(1);
+                expect(routeSegmentServiceSaveSpy).toHaveBeenCalledTimes(4);
+                expect(routeSegmentServiceFindSpy).toHaveBeenCalledTimes(0);
+            });
+        });
+
+    it('should save flight data of an already existing flight with new trip created',
+        async () => {
+            const flightService = TestBed.get(FlightService);
+            const tripService = TestBed.get(TripService);
+            const routeSegmentService = TestBed.get(RouteSegmentService);
+
+            const flightServiceSaveSpy = spyOn(flightService, 'saveFlight').and.returnValue(of({}));
+            const flightServiceLoadSpy = spyOn(flightService, 'getFlightByName').and.returnValue(of(createDefaultTestFlight()));
+            const tripServiceCreateSpy = spyOn(tripService, 'createTrip').and.returnValue(of({}));
+            const tripServiceUpdateSpy = spyOn(tripService, 'updateTrip').and.returnValue(of({}));
+            const tripServiceDeleteSpy = spyOn(tripService, 'deleteTrip').and.returnValue(of({}));
+            const routeSegmentServiceSaveSpy = spyOn(routeSegmentService, 'saveRouteSegment').and.returnValue(of({}));
+            const routeSegmentServiceFindSpy = spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({}));
+
+            const save = new SaveController(createNewTripTestInput(), new TripManager(createDefaultTestFlight(),
+                createDefaultTestRouteSegments(), createModifiedCreateNewTestTrips()[0]),
+                flightService, tripService, routeSegmentService);
+
+            save.createSaveAction().subscribe(() => {
+                expect(flightServiceSaveSpy).toHaveBeenCalledTimes(1);
+                expect(flightServiceLoadSpy).toHaveBeenCalledTimes(1);
+                expect(tripServiceCreateSpy).toHaveBeenCalledTimes(1);
+                expect(tripServiceUpdateSpy).toHaveBeenCalledTimes(2);
+                expect(tripServiceDeleteSpy).toHaveBeenCalledTimes(0);
+                expect(routeSegmentServiceSaveSpy).toHaveBeenCalledTimes(4);
+                expect(routeSegmentServiceFindSpy).toHaveBeenCalledTimes(0);
+            });
+        });
+
+    it('should save a flight under a new name, replicating its trip data',
+        async () => {
+            const flightService = TestBed.get(FlightService);
+            const tripService = TestBed.get(TripService);
+            const routeSegmentService = TestBed.get(RouteSegmentService);
+
+            const flightServiceSaveSpy = spyOn(flightService, 'saveFlight').and.returnValue(of({}));
+            const flightServiceLoadSpy = spyOn(flightService, 'getFlightByName').and.returnValue(of(
+                createChangedNameTestFlight()
+            ));
+            const tripServiceCreateSpy = spyOn(tripService, 'createTrip').and.returnValue(of({}));
+            const tripServiceUpdateSpy = spyOn(tripService, 'updateTrip').and.returnValue(of({}));
+            const tripServiceDeleteSpy = spyOn(tripService, 'deleteTrip').and.returnValue(of({}));
+            const routeSegmentServiceSaveSpy = spyOn(routeSegmentService, 'saveRouteSegment').and.returnValue(of({}));
+            const routeSegmentServiceFindSpy = spyOn(routeSegmentService, 'findRouteSegment').and.returnValue(of({}));
+
+            const save = new SaveController(createDefaultTestInput(), new TripManager(createDefaultTestFlight(),
+                createDefaultTestRouteSegments(), createModifiedExistingTestTrips()[0]),
+                flightService, tripService, routeSegmentService);
+
+            save.createSaveAction().subscribe(() => {
+                expect(flightServiceSaveSpy).toHaveBeenCalledTimes(1);
+                expect(flightServiceLoadSpy).toHaveBeenCalledTimes(1);
+                expect(tripServiceCreateSpy).toHaveBeenCalledTimes(3);
+                expect(tripServiceUpdateSpy).toHaveBeenCalledTimes(0);
+                expect(tripServiceDeleteSpy).toHaveBeenCalledTimes(0);
+                expect(routeSegmentServiceSaveSpy).toHaveBeenCalledTimes(4);
+                expect(routeSegmentServiceFindSpy).toHaveBeenCalledTimes(0);
+            });
+        });
 
 });
