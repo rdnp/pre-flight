@@ -9,7 +9,7 @@ IF "%~2" == "" GOTO USAGE
 CD ..\\de.rdnp.preflight.flightplanner\\target
 FOR /f %%i in ('dir /b *.jar') do set jarfile=%%i
 "C:\Program Files (x86)\WinSCP\winscp.com" /log=upload.log /command ^
-    "open sftp://%~1:%~2@1b946d1.online-server.cloud:22/ -explicit -passive=on" ^
+    "open sftp://%~1:%~2@1b946d1.online-server.cloud:22/ -explicit -passive=on -rawsettings SendBuf=0 SshSimple=1" ^
     "option confirm off" ^
     "put ""%jarfile%"" ""%jarfile%""" ^
     "exit"
