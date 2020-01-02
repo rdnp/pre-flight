@@ -248,16 +248,6 @@ describe('FlightEditorComponent', () => {
     expect(component.findLoadedRouteSegment('START', 'DEST')).toBeTruthy();
   });
 
-  it('should save route segment for points to route segment service', async () => {
-    await fixture.whenStable();
-    const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);
-    const saveRouteSegmentSpy = spyOn(routeSegmentService, 'saveRouteSegment').and.returnValue(null);
-
-    component.saveRouteSegment('START', 'DEST');
-
-    expect(saveRouteSegmentSpy).toHaveBeenCalled();
-  });
-
   it('should update route segments on point insertion', async () => {
     await fixture.whenStable();
     const routeSegmentService = fixture.debugElement.injector.get(RouteSegmentService);

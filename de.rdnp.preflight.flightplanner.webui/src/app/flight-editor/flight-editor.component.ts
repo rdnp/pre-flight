@@ -123,10 +123,6 @@ export class FlightEditorComponent implements OnInit {
     });
   }
 
-  saveRouteSegment(fromPointId: string, toPointId: string) {
-    this.routeSegmentService.saveRouteSegment(this.routeSegments.get(fromPointId + '\0' + toPointId));
-  }
-
   trackByIndex(index: any) {
     return index;
   }

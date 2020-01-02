@@ -10,7 +10,8 @@ const appRoutes: Routes = [
   { path: 'flightplanner/list', component: FlightListComponent },
   { path: 'flightplanner/edit/:name', component: FlightEditorComponent },
   { path: 'flightplanner', component: FlightListComponent },
-  { path: '',
+  {
+    path: '',
     redirectTo: '/flightplanner',
     pathMatch: 'full'
   },
@@ -26,7 +27,7 @@ const appRoutes: Routes = [
     BrowserModule,
     HttpClientModule,
     RouterModule.forRoot(
-      appRoutes
+      appRoutes, { useHash: true }
     )
   ],
   providers: [],
